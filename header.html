@@ -1,0 +1,70 @@
+<!-- header.html -->
+<style>
+    /* 导航栏相关样式 */
+    nav.container-fluid ul:nth-child(2) {
+        font-size: 0.85rem !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+    
+    nav .contrast {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: white !important;
+    }
+    
+    nav .contrast:hover {
+        background: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+    }
+
+    /* Logo 样式 */
+    nav .secondary img {
+        background-color: transparent !important;
+        width: 36px !important;
+        height: 36px !important;
+        vertical-align: middle !important;
+    }
+    
+    nav .secondary strong {
+        font-size: 20px !important;
+        color: var(--primary) !important;
+    }
+
+    /* 外层包裹器 */
+    .page-wrapper {
+        max-width: 1200px !important;
+        width: 100% !important;
+        padding: 0 1.5rem !important;
+        margin: 0 auto !important;
+    }
+
+    /* 内部模块统一满宽无额外边距 */
+    nav.container-fluid {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+</style>
+
+<!-- 导航栏 -->
+<nav class="container-fluid">
+    <ul>
+        <li>
+            <a href="/" class="secondary">
+                <img src="http://purecpp.cn/purecpp/images/cover/logo6.png" alt="PureCpp Logo">
+                <strong>PureCpp</strong>
+            </a>
+        </li>
+    </ul>
+    <ul>
+        <li><a href="#articles">技术文章</a></li>
+        <li><a href="#qa">问答</a></li>
+        <li><a href="#chat">聊天室</a></li>
+        <li><a href="#review">Code Review</a></li>
+        <li><a href="#conference">Purecpp大会</a></li>
+        <li><a href="login.html">登录</a></li>
+        <li><a href="register.html" role="button" class="contrast" style="padding: 0.3rem 0.5rem !important; font-size: 0.85rem !important; height: auto !important;">注册</a></li>
+    </ul>
+</nav>

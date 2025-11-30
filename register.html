@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Purecpp.cn 现代C++社区</title>
+    <meta name="description" content="注册Purecpp社区账号，加入现代C++技术交流平台">
+
+    <!-- 本地资源（与主站一致） -->
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <script defer src="script/alpine.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --muted-color: #6b7280;
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #333;
+            --text-highlight: var(--primary);
+            --input-bg: #f9fafb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        /* 深色模式（保留系统跟随，移除手动切换） */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #121212;
+                --bg-card: #1e1e1e;
+                --text-main: #f3f4f6;
+                --text-highlight: #818cf8;
+                --border-color: #374151;
+                --input-bg: #2d2d2d;
+                --success-color: #34d399;
+                --error-color: #f87171;
+            }
+        }
+
+        /* 全局样式：紧凑布局 */
+        body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航：简化紧凑 */
+        .page-header {
+            max-width: 1400px;
+            width: 100%;
+            padding: 0.8rem 2rem;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* 只留logo，移除主题切换 */
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            background-color: transparent !important;
+        }
+
+        .logo strong {
+            font-size: 18px !important;
+            color: var(--primary) !important;
+        }
+
+        /* 注册容器：加宽+紧凑内边距 */
+        .register-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 2rem;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 800px; /* 加宽表单（原450px） */
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.5rem; /* 紧凑内边距（原2rem） */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .register-card h2 {
+            text-align: center;
+            color: var(--text-highlight) !important;
+            margin-bottom: 0rem !important; /* 紧凑间距 */
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* 表单样式：紧凑化 */
+        .form-group {
+            margin-bottom: 0rem !important; /* 缩小表单组间距（原1.2rem） */
+        }
+
+        /* 重点：缩小邮箱、密码区域的额外空白（只改这里） */
+        .form-group.email-group,
+        .form-group.password-group {
+            margin-bottom: 0.1rem !important; /* 比其他表单组间距更小 */
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.1rem !important; /* 紧凑标签间距 */
+            font-size: 0.85rem;
+            color: var(--text-main) !important;
+        }
+
+        html .form-control {
+            width: 100% !important;
+            padding: 0.25rem 0.6rem !important; /* 最小垂直内边距，不贴边 */
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            background: var(--input-bg) !important;
+            color: var(--text-main) !important;
+            font-size: 0.85rem !important; /* 进一步缩小字体 */
+            box-sizing: border-box !important;
+            transition: border-color 0.2s ease !important;
+            line-height: 1.2 !important; /* 最小行高 */
+            min-height: unset !important; /* 清除所有最小高度限制 */
+            max-height: 42px !important; /* 限制最大高度 */
+            height: 42px !important; /* 强制固定高度（核心） */
+            appearance: none !important; /* 清除浏览器原生外观 */
+            -webkit-appearance: none !important; /* 兼容 Safari/Chrome */
+            -moz-appearance: none !important; /* 兼容 Firefox */
+        }
+
+        .form-control:focus {
+            outline: none !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+        }
+
+        /* 行内表单：紧凑间距 */
+        .form-row {
+            display: flex;
+            gap: 0.8rem; /* 紧凑间距（原1rem） */
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0 !important;
+        }
+
+        /* 1. 输入框容器：相对定位，用于放置右侧图标 */
+        .verify-input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        /* 2. 验证码输入框：右侧预留图标空间，避免文字被遮挡 */
+        .verify-input {
+            padding-right: 38px !important; /* 预留图标按钮宽度，不遮挡输入文字 */
+        }
+
+        /* 保留原有输入框高度（30px），确保整体协调 */
+        .form-control.verify-input {
+            height: 40px !important;
+            padding: 0.25rem 0.6rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* C++ 问题显示样式（紧凑间距，消除多余空白） */
+        .cpp-question {
+            background-color: #d8d7d7 !important;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-bottom: 0.3rem !important; /* 紧凑间距，消除空白 */
+            font-size: 0.85rem;
+            color: var(--text-main);
+            margin-top: 0 !important;
+            pointer-events: none; /* 禁止点击交互 */
+            opacity: 0.9; /* 视觉上区分可编辑框 */
+            cursor: default; /* 鼠标指针显示为默认（非输入指针） */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cpp-question {
+                background-color: #2a2a2a !important; /* 深色模式下的深灰色背景 */
+            }
+        }
+
+        /* 错误提示样式（隐藏，还原原始无提示效果） */
+        .error-message {
+            display: none !important;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 0.35rem; /* 紧凑按钮内边距 */
+            background: var(--primary) !important; /* 还原原始背景色 */
+            border: none !important;
+            border-radius: 6px !important;
+            color: white !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer !important; /* 强制可点击 */
+            transition: background 0.3s ease;
+            margin-top: 0.3rem !important; /* 紧凑间距 */
+            opacity: 1 !important; /* 取消透明效果 */
+        }
+
+        /* 强制注册按钮始终可点击，还原原始交互 */
+        .btn-register:disabled {
+            background: var(--primary) !important;
+            cursor: pointer !important;
+        }
+
+        /* 协议说明：紧凑 */
+        .agreement {
+            margin: 0.2rem 0 !important; /* 紧凑间距（原1rem） */
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .agreement input {
+            vertical-align: middle;
+            font-size: 0.8rem;
+        }
+
+        .agreement a {
+            color: var(--text-highlight) !important;
+            text-decoration: none !important;
+        }
+
+        .agreement a:hover {
+            text-decoration: underline !important;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 0rem !important; /* 紧凑间距 */
+            font-size: 0.85rem;
+        }
+
+        .login-link a {
+            color: var(--text-highlight) !important;
+            text-decoration: none !important;
+        }
+
+        /* 响应式适配：保持紧凑 */
+        @media (max-width: 768px) {
+            .register-card {
+                padding: 0.6rem;
+                max-width: 100%;
+            }
+            .page-header {
+                padding: 0.8rem 1rem;
+            }
+            .register-container {
+                padding: 1rem;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .verify-code {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+            .verify-code .form-control {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航：只留logo，移除主题切换 -->
+    <header class="page-header">
+        <a href="/index.html" class="logo">
+            <img src="http://purecpp.cn/purecpp/images/cover/logo6.png" alt="PureCpp Logo">
+            <strong>PureCpp</strong>
+        </a>
+    </header>
+
+    <!-- 注册主体：完全还原原始界面，仅缩小邮箱、密码区域空白 -->
+    <div class="register-container">
+        <div class="register-card" x-data="registerFormLogic()" x-init="init()">
+            <h2>账号注册</h2>
+            <form id="registerForm" @submit="handleSubmit">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" class="form-control" 
+                           placeholder="请输入3-20位字母、数字或下划线" 
+                           required x-model="username">
+                </div>
+                <!-- 邮箱组：添加专属类，缩小间距 -->
+                <div class="form-group email-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" class="form-control" 
+                           placeholder="请输入有效邮箱地址" 
+                           required x-model="email">
+                </div>
+                <div class="form-row">
+                    <!-- 密码组：添加专属类，缩小间距 -->
+                    <div class="form-group password-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" class="form-control" 
+                               placeholder="请输入6-20位密码" 
+                               required x-model="password">
+                    </div>
+                    <!-- 确认密码组：添加专属类，缩小间距 -->
+                    <div class="form-group password-group">
+                        <label for="confirmPwd">确认密码</label>
+                        <input type="password" id="confirmPwd" class="form-control" 
+                               placeholder="请再次输入密码" 
+                               required x-model="confirmPwd">
+                    </div>
+                </div>
+
+                <!-- 问题区域：保持原样，不修改 -->
+                <div class="verify-code">
+                    <div class="form-group">
+                        <div class="cpp-question" x-html="`问题：<span style='color: red;'>${currentQuestion.question}</span>`"></div>
+                        <!-- 输入框容器：包裹输入框 -->
+                        <div class="verify-input-group">
+                            <input type="text" id="verifyCode" class="form-control verify-input" 
+                                   placeholder="请输入" 
+                                   required x-model="verifyAnswer">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agreement">
+                    <input type="checkbox" id="agreement" required x-model="agreement">
+                    <label for="agreement">我已阅读并同意 <a href="/terms.html">《用户服务协议》</a> 和 <a href="/privacy.html">《隐私政策》</a></label>
+                </div>
+                <!-- 注册按钮：保持原样 -->
+                <button type="submit" class="btn-register">
+                    注册账号
+                </button>
+                <div class="login-link">
+                    已有账号？<a href="/login.html">立即登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 脚本保持原样，不做任何修改 -->
+    <script>
+        function registerFormLogic() {
+            return {
+                // 表单数据绑定
+                username: '',
+                email: '',
+                password: '',
+                confirmPwd: '',
+                verifyAnswer: '',
+                agreement: false,
+                // C++ 题库（保留你提供的内容）
+                cppQuestions: [
+                    { question: 'int a = 3; a += 5; 最终a的值是？', answer: '8' },
+                    { question: 'C++中const int* p表示p指向的内容是否可修改？（填 可/不可）', answer: '不可' },
+                    { question: 'sizeof(char)的返回值是？', answer: '1' },
+                    { question: 'int x = 5; cout << ++x; 输出结果是？', answer: '6' },
+                    { question: 'C++中声明指向int的常量指针，语法是____ int* p;（填关键字）', answer: 'const' },
+                    { question: 'bool flag = (3 && 0 || 1); flag的值是？（填1或0）', answer: '1' }
+                ],
+                currentQuestion: {},
+
+                // 初始化：随机选择C++问题
+                init() {
+                    const randomIdx = Math.floor(Math.random() * this.cppQuestions.length);
+                    this.currentQuestion = this.cppQuestions[randomIdx];
+                },
+
+                // 表单提交处理：保持原样
+                handleSubmit(e) {
+                    e.preventDefault();
+                    const password = this.password;
+                    const confirmPwd = this.confirmPwd;
+                    const verifyCode = this.verifyAnswer.trim();
+
+                    // 保留原始验证逻辑
+                    if (password !== confirmPwd) {
+                        alert('两次输入的密码不一致，请重新输入');
+                        return;
+                    }
+                    if (verifyCode.length < 1) {
+                        alert('请输入答案');
+                        return;
+                    }
+
+                    // 模拟注册成功（保留原始逻辑）
+                    alert('注册成功！请前往邮箱验证账号');
+                    window.location.href = '/login.html';
+                }
+            };
+        }
+    </script>
+</body>
+</html>

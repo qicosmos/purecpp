@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - Purecpp.cn 现代C++社区</title>
+    <meta name="description" content="Purecpp社区登录，专注于现代C++技术交流">
+
+    <!-- 本地资源（与主站一致） -->
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <script defer src="alpine.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --muted-color: #6b7280;
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #333;
+            --text-highlight: var(--primary);
+            --input-bg: #f9fafb;
+        }
+
+        /* 深色模式（保留系统跟随，移除手动切换） */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #121212;
+                --bg-card: #1e1e1e;
+                --text-main: #f3f4f6;
+                --text-highlight: #818cf8;
+                --border-color: #374151;
+                --input-bg: #2d2d2d;
+            }
+        }
+
+        /* 全局样式：紧凑布局 */
+        body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航：简化紧凑 */
+        .page-header {
+            max-width: 1400px;
+            width: 100%;
+            padding: 0.8rem 2rem;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* 只留logo，移除主题切换 */
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            background-color: transparent !important;
+        }
+
+        .logo strong {
+            font-size: 18px !important;
+            color: var(--primary) !important;
+        }
+
+        /* 登录容器：加宽+紧凑内边距 */
+        .login-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 2rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 550px; /* 加宽表单（原400px） */
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.8rem; /* 紧凑内边距（原2rem） */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .login-card h2 {
+            text-align: center;
+            color: var(--text-highlight) !important;
+            margin-bottom: 1.2rem !important; /* 紧凑间距 */
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* 表单样式：紧凑化 */
+        .form-group {
+            margin-bottom: 0.1rem !important; /* 缩小表单组间距（原1.2rem） */
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem !important; /* 紧凑标签间距 */
+            font-size: 0.85rem;
+            color: var(--text-main) !important;
+        }
+
+html .form-control {
+    width: 100% !important;
+    padding: 0.25rem 0.6rem !important; /* 最小垂直内边距，不贴边 */
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    background: var(--input-bg) !important;
+    color: var(--text-main) !important;
+    font-size: 0.85rem !important; /* 进一步缩小字体 */
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease !important;
+    line-height: 1.2 !important; /* 最小行高 */
+    min-height: unset !important; /* 清除所有最小高度限制 */
+    max-height: 42px !important; /* 限制最大高度 */
+    height: 42px !important; /* 强制固定高度（核心） */
+    appearance: none !important; /* 清除浏览器原生外观 */
+    -webkit-appearance: none !important; /* 兼容 Safari/Chrome */
+    -moz-appearance: none !important; /* 兼容 Firefox */
+}
+
+        .form-control:focus {
+            outline: none !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 0.5rem; /* 紧凑按钮内边距 */
+            background: var(--primary) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            color: white !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 0.8rem !important; /* 紧凑间距 */
+        }
+
+        .btn-login:hover {
+            background: var(--primary-hover) !important;
+        }
+
+        /* 辅助链接：紧凑布局 */
+        .form-helper {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.8rem !important; /* 紧凑间距 */
+            font-size: 0.8rem;
+        }
+
+        .form-helper a {
+            color: var(--text-highlight) !important;
+            text-decoration: none !important;
+        }
+
+        .form-helper a:hover {
+            text-decoration: underline !important;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1rem !important; /* 紧凑间距 */
+            font-size: 0.85rem;
+        }
+
+        /* 响应式适配：保持紧凑 */
+        @media (max-width: 768px) {
+            .login-card {
+                padding: 1.2rem;
+                max-width: 100%;
+            }
+            .page-header {
+                padding: 0.8rem 1rem;
+            }
+            .login-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="page-header">
+      <script>
+        // 加载 header
+        fetch('header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-container').innerHTML = html;
+            });
+      </script>
+    </header>
+
+    <!-- 登录主体：加宽+紧凑 -->
+    <div class="login-container">
+        <div class="login-card">
+            <h2>账号登录</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名/邮箱</label>
+                    <input type="text" id="username" class="form-control" placeholder="请输入用户名或邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" class="form-control" placeholder="请输入密码" required>
+                </div>
+                <div class="form-helper">
+                    <label>
+                        <input type="checkbox" style="vertical-align: middle; margin-right: 0.3rem; font-size: 0.8rem;"> 记住我
+                    </label>
+                    <a href="/forgot-password.html">忘记密码？</a>
+                </div>
+                <button type="submit" class="btn-login">登录</button>
+                <div class="register-link">
+                    还没有账号？<a href="/register.html">立即注册</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 登录表单提交脚本（保留核心逻辑） -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // 模拟登录验证（实际项目替换为接口请求）
+            if (username && password) {
+                alert(`登录成功！欢迎 ${username}`);
+                window.location.href = '/index.html'; // 登录成功跳转到首页
+            } else {
+                alert('请填写完整的用户名和密码');
+            }
+        });
+    </script>
+</body>
+</html>
