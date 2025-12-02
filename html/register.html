@@ -322,6 +322,9 @@
     <div class="register-container">
         <div class="register-card" x-data="registerFormLogic()" x-init="init()">
             <h2>账号注册</h2>
+            <p x-show="serverError" x-text="serverError"
+                style="text-align: center; margin-bottom: 0.5rem; color: var(--error-color); border: 1px solid var(--error-color); padding: 0.3rem; border-radius: 6px; font-size: 0.85rem;">
+            </p>
             <form id="registerForm" @submit="handleSubmit">
                 <div class="form-group">
                     <label for="username">用户名</label>
@@ -368,8 +371,12 @@
                             href="/privacy.html">《隐私政策》</a></label>
                 </div>
                 <!-- 注册按钮：保持原样 -->
-                <button type="submit" class="btn-register">
-                    注册账号
+                <button type="submit" class="btn-register" x-bind:disabled="isSubmitting">
+                    <span x-show="!isSubmitting">注册账号</span>
+                    <span x-show="isSubmitting"
+                        style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-spinner fa-spin"></i> 正在注册...
+                    </span>
                 </button>
                 <div class="login-link">
                     已有账号？<a href="/login.html">立即登录</a>
@@ -415,6 +422,7 @@
                 verifyAnswer: '',
                 agreement: false,
                 serverError: '',
+                isSubmitting: false,
 
                 // C++ 题库（保留你提供的内容）
                 cppQuestions: [
@@ -436,6 +444,8 @@
                 // 表单提交处理：保持原样
                 async handleSubmit(e) {
                     e.preventDefault();
+                    if (this.isSubmitting) return;
+
                     const password = this.password;
                     const confirmPwd = this.confirmPwd;
                     const verifyCode = this.verifyAnswer.trim();
@@ -458,6 +468,8 @@
                         cpp_answer: this.verifyAnswer.trim()
                     };
 
+                    this.isSubmitting = true;
+
                     try {
                         const response = await fetch("/api/v1/register", {
                             method: 'POST',
@@ -476,15 +488,11 @@
 
                         } else if (response.status === 400) {
                             // 400 Bad Request: 客户端数据验证失败
-                            // 假设后端返回的错误格式为 { field: 'error message', ... }
-                            alert(data['errors'][0]);
-                            console.error('Fetch Error:', data['errors'][0]);
-
                             if (data.message) {
                                 // 统一错误信息
                                 this.serverError = data.message;
                             } else {
-                                this.serverError = '注册失败：请检查输入信息。';
+                                this.serverError = data['errors'][0] || '注册失败：请检查输入信息。';
                             }
                         } else {
                             // 5xx Server Error 或其他非 400 错误
@@ -494,11 +502,9 @@
                     } catch (error) {
                         // 网络错误 (例如断网或 CORS 阻止)
                         this.serverError = '网络连接失败，请检查网络后重试。';
-
                     } finally {
-                        if (this.serverError) {
-                            alert(this.serverError);
-                        }
+                        this.isSubmitting = false;
+                        this.serverError = '注册失败，原因：' + this.serverError;
                     }
                 }
             };
