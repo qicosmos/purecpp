@@ -4,8 +4,18 @@ project(purecpp VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 include_directories(../cinatra/include)
+include_directories(../ormpp/ormpp)
+include_directories(../iguana)
+
+set(ENABLE_MYSQL ON)
+add_definitions(-DORMPP_ENABLE_MYSQL)
+add_library(ormpp INTERFACE)
+include(../ormpp/cmake/mysql.cmake)
+target_link_libraries(ormpp INTERFACE ${MYSQL_LIBRARY})
+target_include_directories(ormpp INTERFACE ormpp ormpp/ormpp ${MYSQL_INCLUDE_DIR})
 
 add_executable(purecpp feather.cpp)
+target_link_libraries(purecpp ormpp)
 
 # 复制 HTML 资源的函数
 function(copy_html_resources target_name)

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -87,7 +88,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem 2rem; /* 减小垂直padding，从1.5rem改为0.5rem */
+            padding: 0.5rem 2rem;
+            /* 减小垂直padding，从1.5rem改为0.5rem */
         }
 
         .register-card {
@@ -97,8 +99,9 @@
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-top: 0; /* 确保没有额外上边距 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-top: 0;
+            /* 确保没有额外上边距 */
         }
 
         .register-card h2 {
@@ -268,26 +271,33 @@
                 padding: 0.6rem;
                 max-width: 100%;
             }
+
             .page-header {
                 padding: 0.8rem 1rem;
             }
+
             .register-container {
-                padding: 0.3rem 1rem; /* 移动端也减小空白 */
+                padding: 0.3rem 1rem;
+                /* 移动端也减小空白 */
             }
+
             .form-row {
                 flex-direction: column;
                 gap: 0;
             }
+
             .verify-code {
                 flex-direction: column;
                 gap: 0.6rem;
             }
+
             .verify-code .form-control {
                 width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- 修复：添加正确的容器元素 -->
     <header class="page-header" id="header-container">
@@ -315,50 +325,47 @@
             <form id="registerForm" @submit="handleSubmit">
                 <div class="form-group">
                     <label for="username">用户名</label>
-                    <input type="text" id="username" class="form-control" 
-                           placeholder="请输入3-20位字母、数字或下划线" 
-                           required x-model="username">
+                    <input type="text" id="username" class="form-control" placeholder="请输入3-20位字母、数字或下划线" required
+                        x-model="username">
                 </div>
                 <!-- 邮箱组：添加专属类，缩小间距 -->
                 <div class="form-group email-group">
                     <label for="email">邮箱</label>
-                    <input type="email" id="email" class="form-control" 
-                           placeholder="请输入有效邮箱地址" 
-                           required x-model="email">
+                    <input type="email" id="email" class="form-control" placeholder="请输入有效邮箱地址" required
+                        x-model="email">
                 </div>
                 <div class="form-row">
                     <!-- 密码组：添加专属类，缩小间距 -->
                     <div class="form-group password-group">
                         <label for="password">密码</label>
-                        <input type="password" id="password" class="form-control" 
-                               placeholder="请输入6-20位密码" 
-                               required x-model="password">
+                        <input type="password" id="password" class="form-control" placeholder="请输入6-20位密码" required
+                            x-model="password">
                     </div>
                     <!-- 确认密码组：添加专属类，缩小间距 -->
                     <div class="form-group password-group">
                         <label for="confirmPwd">确认密码</label>
-                        <input type="password" id="confirmPwd" class="form-control" 
-                               placeholder="请再次输入密码" 
-                               required x-model="confirmPwd">
+                        <input type="password" id="confirmPwd" class="form-control" placeholder="请再次输入密码" required
+                            x-model="confirmPwd">
                     </div>
                 </div>
 
                 <!-- 问题区域：保持原样，不修改 -->
                 <div class="verify-code">
                     <div class="form-group">
-                        <div class="cpp-question" x-html="`问题：<span style='color: red;'>${currentQuestion.question}</span>`"></div>
+                        <div class="cpp-question"
+                            x-html="`问题：<span style='color: red;'>${currentQuestion.question}</span>`"></div>
                         <!-- 输入框容器：包裹输入框 -->
                         <div class="verify-input-group">
-                            <input type="text" id="verifyCode" class="form-control verify-input" 
-                                   placeholder="请输入" 
-                                   required x-model="verifyAnswer">
+                            <input type="text" id="verifyCode" class="form-control verify-input" placeholder="请输入"
+                                required x-model="verifyAnswer">
                         </div>
                     </div>
                 </div>
 
                 <div class="agreement">
                     <input type="checkbox" id="agreement" required x-model="agreement">
-                    <label for="agreement">我已阅读并同意 <a href="/terms.html">《用户服务协议》</a> 和 <a href="/privacy.html">《隐私政策》</a></label>
+                    <label for="agreement">我已阅读并同意 <a href="/terms.html">《用户服务协议》</a> 和 <a
+                            href="/privacy.html">《隐私政策》</a></label>
                 </div>
                 <!-- 注册按钮：保持原样 -->
                 <button type="submit" class="btn-register">
@@ -374,13 +381,13 @@
     <!-- 修复：添加加载 header 的脚本 -->
     <script>
         // 加载 header
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('header-container');
             if (!container) {
                 console.error('找不到 header-container 元素');
                 return;
             }
-            
+
             fetch('header.html')
                 .then(response => {
                     if (!response.ok) {
@@ -407,6 +414,8 @@
                 confirmPwd: '',
                 verifyAnswer: '',
                 agreement: false,
+                serverError: '',
+
                 // C++ 题库（保留你提供的内容）
                 cppQuestions: [
                     { question: 'int a = 3; a += 5; 最终a的值是？', answer: '8' },
@@ -425,7 +434,7 @@
                 },
 
                 // 表单提交处理：保持原样
-                handleSubmit(e) {
+                async handleSubmit(e) {
                     e.preventDefault();
                     const password = this.password;
                     const confirmPwd = this.confirmPwd;
@@ -441,12 +450,60 @@
                         return;
                     }
 
-                    // 模拟注册成功（保留原始逻辑）
-                    alert('注册成功！请前往邮箱验证账号');
-                    window.location.href = '/login.html';
+                    const payload = {
+                        username: this.username,
+                        email: this.email,
+                        password: this.password,
+                        // 注意：通常不需要发送 confirmPwd 和 agreement 到后端
+                        cpp_answer: this.verifyAnswer.trim()
+                    };
+
+                    try {
+                        const response = await fetch("/api/v1/register", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // 200 OK: 注册成功
+                            alert('注册成功！请前往邮箱验证账号。');
+                            window.location.href = '/login.html';
+
+                        } else if (response.status === 400) {
+                            // 400 Bad Request: 客户端数据验证失败
+                            // 假设后端返回的错误格式为 { field: 'error message', ... }
+                            alert(data['errors'][0]);
+                            console.error('Fetch Error:', data['errors'][0]);
+
+                            if (data.message) {
+                                // 统一错误信息
+                                this.serverError = data.message;
+                            } else {
+                                this.serverError = '注册失败：请检查输入信息。';
+                            }
+                        } else {
+                            // 5xx Server Error 或其他非 400 错误
+                            this.serverError = `注册失败：服务器返回状态码 ${response.status}。请稍后再试。`;
+                        }
+
+                    } catch (error) {
+                        // 网络错误 (例如断网或 CORS 阻止)
+                        this.serverError = '网络连接失败，请检查网络后重试。';
+
+                    } finally {
+                        if (this.serverError) {
+                            alert(this.serverError);
+                        }
+                    }
                 }
             };
         }
     </script>
 </body>
+
 </html>
