@@ -5,11 +5,25 @@
 #include <iguana/json_writer.hpp>
 #include <string_view>
 #include <system_error>
+#include <chrono>
 
 using namespace cinatra;
 using namespace iguana;
 
+#include <string>
+#include <vector>
+#include <regex>
+#include <optional>
+
 namespace purecpp {
+
+// 获取当前时间戳（毫秒）
+inline uint64_t get_timestamp_milliseconds() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+}
+
 inline const std::vector<std::string_view> cpp_questions{
     "C++中声明指向int的常量指针, 语法是____ int* "
     "p。(请把空白部分的代码补充完整)",
@@ -24,18 +38,31 @@ inline const std::vector<std::string_view> cpp_answers{
     "const", "8", "shared_ptr", "unique_ptr", "内存泄漏", "0"};
 
 struct register_info {
-  std::string_view username;
-  std::string_view email;
-  std::string_view password;
-  std::string_view cpp_answer;
+  std::string username;
+  std::string email;
+  std::string password;
+  std::string cpp_answer;
   size_t question_index;
 };
 
 struct user_resp_data {
   uint64_t user_id;
-  std::string_view username;
-  std::string_view email;
+  std::string username;
+  std::string email;
   bool verification_required;
+};
+
+// 登录相关结构体
+struct login_info {
+  std::string username;
+  std::string password;
+};
+
+struct login_resp_data {
+  uint64_t user_id;
+  std::string username;
+  std::string email;
+  std::string token;
 };
 
 inline std::string make_error(std::string_view err_msg) {
@@ -86,7 +113,7 @@ struct check_cpp_answer {
 struct check_user_name {
   bool before(coro_http_request &req, coro_http_response &res) {
     register_info info = std::any_cast<register_info>(req.get_user_data());
-    if (info.username.empty() || info.username.size() > 20) {
+    if (info.username.empty() || info.username.size() > 64) {
       res.set_status_and_content(status_type::bad_request,
                                  make_error("用户名长度非法应改为1-20。"));
       return false;
@@ -157,6 +184,37 @@ struct check_password {
                                  make_error("密码至少包含大小写字母和数字。"));
       return false;
     }
+    return true;
+  }
+};
+
+// 登录相关的验证结构体
+struct check_login_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("用户名(邮箱)、密码不能为空。"));
+      return false;
+    }
+
+    login_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error("login info is not a required json"));
+      return false;
+    }
+    // 校验用户名、密码不能为空
+    if (info.username.empty() || info.password.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("用户名(邮箱)、密码不能为空。"));
+      return false;
+    }
+
+    req.set_user_data(info);
     return true;
   }
 };

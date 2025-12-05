@@ -22,9 +22,9 @@ struct db_config {
 
 struct users_t {
   uint64_t id;
-  std::string_view user_name; // unique, not null
-  std::string_view email;     // unique, not null
-  std::string_view pwd_hash;  // not null
+  std::string user_name; // unique, not null
+  std::string email;     // unique, not null
+  std::string pwd_hash;  // not null
   int is_verifyed;            // 邮箱是否已验证
   uint64_t created_at;
   uint64_t last_active_at; // 最后活跃时间

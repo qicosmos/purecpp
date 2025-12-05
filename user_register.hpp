@@ -6,13 +6,6 @@
 using namespace cinatra;
 
 namespace purecpp {
-inline uint64_t get_timestamp_milliseconds() {
-  auto now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto milliseconds =
-      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  return static_cast<uint64_t>(milliseconds.count());
-}
 
 class user_register_t {
 public:
@@ -20,8 +13,8 @@ public:
     register_info info = std::any_cast<register_info>(req.get_user_data());
 
     // save to database
-    auto &db_pool = connection_pool<dbng<mysql>>::instance();
-    auto conn = db_pool.get();
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+    conn_guard guard(conn);
     users_t user{.id = 0,
                  .user_name = info.username,
                  .email = info.email,
@@ -40,7 +33,7 @@ public:
     std::string json;
     iguana::to_json(data, json);
 
-    resp.set_status_and_content(status_type::bad_request, std::move(json));
+    resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };
 } // namespace purecpp

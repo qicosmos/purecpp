@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(../cinatra/include)
 include_directories(../ormpp)
 include_directories(../iguana)
+include_directories(thirdparty)
 
 set(ENABLE_MYSQL ON)
 add_definitions(-DORMPP_ENABLE_MYSQL)
@@ -59,6 +60,12 @@ endfunction()
 
 # 为 purecpp 目标调用复制函数
 copy_html_resources(purecpp)
+
+# 包含测试目录
+option(BUILD_UNIT_TESTS "Build unit tests" ON)
+if (BUILD_UNIT_TESTS)
+    add_subdirectory(tests)
+endif()    
 
 # 在配置阶段显示详细信息
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

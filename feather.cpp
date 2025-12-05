@@ -11,6 +11,7 @@
 
 #include "entity.hpp"
 #include "user_register.hpp"
+#include "user_login.hpp"
 
 using namespace cinatra;
 using namespace ormpp;
@@ -75,10 +76,29 @@ bool init_db() {
   }
 
   auto conn = pool.get();
-  conn->execute("drop table if exists users");
-  conn->create_datatable<users_t>(
-      ormpp_auto_key{"id"}, ormpp_unique{{"user_name", "email", "pwd_hash"}},
-      ormpp_not_null{{"user_name", "email", "pwd_hash"}});
+  
+  // 尝试创建表，如果表已经存在，ormpp可能会返回false或者抛出异常
+  try {
+    bool created = conn->create_datatable<users_t>(
+        ormpp_auto_key{"id"}, ormpp_unique{{"user_name", "email", "pwd_hash"}},
+        ormpp_not_null{{"user_name", "email", "pwd_hash"}});
+    
+    if (created) {
+      std::cout << "Table 'users' created successfully." << std::endl;
+    } else {
+      std::cout << "Table 'users' already exists." << std::endl;
+    }
+  } catch (const std::exception &e) {
+    // 检查异常是否是因为表已经存在
+    std::string error_msg = e.what();
+    if (error_msg.find("already exists") != std::string::npos || 
+        error_msg.find("Duplicate entry") != std::string::npos) {
+      std::cout << "Table 'users' already exists." << std::endl;
+    } else {
+      std::cout << "Error creating table: " << e.what() << std::endl;
+      return false;
+    }
+  }
 
   return true;
 }
@@ -132,5 +152,11 @@ int main() {
       "/api/v1/register", &user_register_t::handle_register, usr_reg,
       check_register_input{}, check_cpp_answer{}, check_user_name{},
       check_email{}, check_password{});
+  
+  user_login_t usr_login{};
+  server.set_http_handler<POST>(
+      "/api/v1/login", &user_login_t::handle_login, usr_login,
+      check_login_input{});
+      
   server.sync_start();
 }
