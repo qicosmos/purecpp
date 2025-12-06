@@ -296,4 +296,107 @@ struct check_new_password {
   }
 };
 
+// 忘记密码相关的验证结构体
+struct check_forgot_password_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("邮箱不能为空。"));
+      return false;
+    }
+
+    forgot_password_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error("请求格式不正确。"));
+      return false;
+    }
+    
+    // 校验邮箱不能为空
+    if (info.email.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("邮箱不能为空。"));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+// 重置密码相关的验证结构体
+struct check_reset_password_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("重置密码信息不能为空。"));
+      return false;
+    }
+
+    reset_password_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error("重置密码信息格式不正确。"));
+      return false;
+    }
+    
+    // 校验token和新密码不能为空
+    if (info.token.empty() || info.new_password.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("token和新密码不能为空。"));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+// 重置密码时的密码验证
+struct check_reset_password {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    reset_password_info info = std::any_cast<reset_password_info>(req.get_user_data());
+    
+    // 检查新密码长度
+    if (info.new_password.size() < 6 || info.new_password.size() > 20) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("密码长度不合法，长度6-20位。"));
+      return false;
+    }
+
+    bool has_upper = false;
+    bool has_lower = false;
+    bool has_digit = false;
+
+    // 检查新密码字符类型要求
+    for (char c : info.new_password) {
+      if (std::isupper(static_cast<unsigned char>(c))) {
+        has_upper = true;
+      } else if (std::islower(static_cast<unsigned char>(c))) {
+        has_lower = true;
+      } else if (std::isdigit(static_cast<unsigned char>(c))) {
+        has_digit = true;
+      }
+    }
+    
+    // 至少包含大小写字母和数字
+    bool valid = has_upper && has_lower && has_digit;
+    if (!valid) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("密码至少包含大小写字母和数字。"));
+      return false;
+    }
+    
+    return true;
+  }
+};
+
 } // namespace purecpp

@@ -24,7 +24,7 @@ struct users_t {
   uint64_t id;
   std::array<char, 21> user_name; // unique, not null
   std::array<char, 254> email;    // unique, not null
-  std::string_view pwd_hash;      // not null
+  std::string pwd_hash;           // not null - 从std::string_view改为std::string以解决编译问题
   int is_verifyed;                // 邮箱是否已验证
   uint64_t created_at;
   uint64_t last_active_at; // 最后活跃时间
@@ -54,4 +54,27 @@ struct change_password_resp_data {
   bool success;
   std::string message;
 };
+
+// 忘记密码相关结构体
+struct forgot_password_info {
+  std::string email;
+};
+
+struct reset_password_info {
+  std::string token;
+  std::string new_password;
+};
+
+// 密码重置token表
+struct password_reset_tokens_t {
+  uint64_t id;
+  uint64_t user_id;
+  std::string token;
+  uint64_t created_at;
+  uint64_t expires_at;
+};
+
+inline constexpr std::string_view get_alias_struct_name(password_reset_tokens_t *) {
+  return "password_reset_tokens"; // 表名
+}
 } // namespace purecpp

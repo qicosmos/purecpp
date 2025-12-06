@@ -54,15 +54,19 @@ public:
       return;
     }
     
+    // 将std::array转换为std::string
+    std::string user_name_str(user.user_name.data());
+    std::string email_str(user.email.data());
+    
     // 生成JWT token
-    std::string token = generate_jwt_token(user.id, user.user_name, user.email);
+    std::string token = generate_jwt_token(user.id, user_name_str, email_str);
     
     // 更新最后活跃时间
     user.last_active_at = get_timestamp_milliseconds();
     conn->update<users_t>(user, "id = ?", user.id);
-    
+     
     // 返回登录成功响应
-    login_resp_data login_data{user.id, user.user_name, user.email, token};
+    login_resp_data login_data{user.id, user_name_str, email_str, token};
     rest_response<login_resp_data> data{};
     data.success = true;
     data.message = "登录成功";

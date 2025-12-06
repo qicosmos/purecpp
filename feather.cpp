@@ -13,6 +13,7 @@
 #include "user_register.hpp"
 #include "user_login.hpp"
 #include "user_password.hpp"
+#include "user_forgot_password.hpp"
 
 using namespace cinatra;
 using namespace ormpp;
@@ -100,6 +101,28 @@ bool init_db() {
     }
   }
 
+  // 创建密码重置token表
+  try {
+    bool created = conn->create_datatable<password_reset_tokens_t>(
+      ormpp_auto_key{"id"}, ormpp_unique{{"token"}},
+      ormpp_not_null{{"user_id", "token", "created_at", "expires_at"}});
+    if (created) {
+      std::cout << "Table 'password_reset_tokens' created successfully." << std::endl;
+    } else {
+      std::cout << "Table 'password_reset_tokens' already exists." << std::endl;
+    }
+  } catch (const std::exception &e) {
+    // 检查异常是否是因为表已经存在
+    std::string error_msg = e.what();
+    if (error_msg.find("already exists") != std::string::npos || 
+        error_msg.find("Duplicate entry") != std::string::npos) {
+      std::cout << "Table 'password_reset_tokens' already exists." << std::endl;
+    } else {
+      std::cout << "Error creating table: " << e.what() << std::endl;
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -162,6 +185,16 @@ int main() {
   server.set_http_handler<POST>(
       "/api/v1/change_password", &user_password_t::handle_change_password, usr_password,
       check_change_password_input{}, check_new_password{});
+  
+  // 添加忘记密码和重置密码的路由
+  user_forgot_password_t usr_forgot_password{};
+  server.set_http_handler<POST>(
+      "/api/v1/forgot-password", &user_forgot_password_t::handle_forgot_password, usr_forgot_password,
+      check_forgot_password_input{});
+      
+  server.set_http_handler<POST>(
+      "/api/v1/reset-password", &user_forgot_password_t::handle_reset_password, usr_forgot_password,
+      check_reset_password_input{}, check_reset_password{});
       
   server.sync_start();
 }
