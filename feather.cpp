@@ -77,13 +77,12 @@ bool init_db() {
   }
 
   auto conn = pool.get();
-  
   // 尝试创建表，如果表已经存在，ormpp可能会返回false或者抛出异常
   try {
     bool created = conn->create_datatable<users_t>(
-        ormpp_auto_key{"id"}, ormpp_unique{{"user_name", "email", "pwd_hash"}},
-        ormpp_not_null{{"user_name", "email", "pwd_hash"}});
-    
+      ormpp_auto_key{"id"}, ormpp_unique{{"user_name"}},
+      ormpp_unique{{"email"}},
+      ormpp_not_null{{"user_name", "email", "pwd_hash"}});
     if (created) {
       std::cout << "Table 'users' created successfully." << std::endl;
     } else {
