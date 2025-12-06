@@ -18,6 +18,14 @@ struct db_config {
 
   int db_conn_num;
   int db_conn_timeout; // seconds
+  
+  // SMTP配置
+  std::string smtp_host;
+  int smtp_port;
+  std::string smtp_user;
+  std::string smtp_password;
+  std::string smtp_from_email;
+  std::string smtp_from_name;
 };
 
 struct users_t {

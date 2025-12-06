@@ -8,6 +8,8 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
+#include <asio/io_context.hpp>
 
 using namespace cinatra;
 
@@ -28,15 +30,84 @@ namespace purecpp {
         return ss.str();
     }
     
-    // 模拟发送邮件的函数
-    inline void send_reset_email(const std::string& email, const std::string& token) {
-        // 在实际项目中，这里应该使用SMTP服务发送真实邮件
-        // 这里只是模拟发送邮件的过程
+    // 读取配置文件的辅助函数
+    inline db_config load_config() {
+        std::ifstream file("cfg/db_config.json", std::ios::in);
+        if (!file.is_open()) {
+            std::cerr << "无法打开配置文件" << std::endl;
+            return db_config{};
+        }
+
+        std::string json(1024, ' ');
+        file.read(json.data(), json.size());
+        json.resize(file.gcount()); // 调整到实际读取的大小
+        
+        db_config conf;
+        iguana::from_json(conf, json);
+        return conf;
+    }
+
+    // 发送真实邮件的函数
+    inline bool send_reset_email(const std::string& email, const std::string& token) {
+        // 加载配置
+        db_config conf = load_config();
+        
+        // 检查必要的配置是否存在
+        if (conf.smtp_host.empty() || conf.smtp_user.empty() || conf.smtp_password.empty()) {
+            std::cerr << "SMTP配置不完整" << std::endl;
+            return false;
+        }
+        
+        // 生成重置链接
         std::string reset_link = "http://localhost:3389/html/reset-password.html?token=" + token;
-        std::cout << "[模拟发送邮件] 收件人: " << email << std::endl;
-        std::cout << "[模拟发送邮件] 主题: 重置密码" << std::endl;
-        std::cout << "[模拟发送邮件] 内容: 请点击以下链接重置密码: " << reset_link << std::endl;
-        std::cout << "[模拟发送邮件] 链接有效期: 1小时" << std::endl;
+        
+        try {
+            // 创建io_context
+            asio::io_context io_context;
+            
+            // 创建SMTP客户端（使用SSL）
+            cinatra::smtp::client<cinatra::SSL> client(io_context);
+            
+            // 设置服务器信息
+            cinatra::smtp::email_server server_info;
+            server_info.server = conf.smtp_host;
+            server_info.port = std::to_string(conf.smtp_port);
+            server_info.user = conf.smtp_user;
+            server_info.password = conf.smtp_password;
+            client.set_email_server(server_info);
+            
+            // 设置邮件内容
+            cinatra::smtp::email_data email_data;
+            email_data.from_email = conf.smtp_from_email;
+            email_data.to_email.push_back(email);
+            email_data.subject = "PureCpp密码重置";
+            
+            // 构建邮件正文
+            std::string email_text;
+            email_text += "<html><body>";
+            email_text += "<h3>密码重置请求</h3>";
+            email_text += "<p>您请求重置您的PureCpp密码。请点击以下链接进行重置：</p>";
+            email_text += "<a href=\"" + reset_link + "\">" + reset_link + "</a><br/><br/>";
+            email_text += "<p>如果您没有请求重置密码，请忽略此邮件。</p>";
+            email_text += "<p>此链接有效期为1小时。</p>";
+            email_text += "<p>感谢您使用PureCpp！</p>";
+            email_text += "</body></html>";
+            
+            email_data.text = email_text;
+            client.set_email_data(email_data);
+            
+            // 发送邮件
+            client.start();
+            
+            // 运行io_context
+            io_context.run();
+            
+            std::cout << "邮件发送成功: " << email << std::endl;
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "发送邮件时发生异常: " << e.what() << std::endl;
+            return false;
+        }
     }
     
     class user_forgot_password_t {
@@ -96,7 +167,10 @@ namespace purecpp {
             }
             
             // 发送重置邮件
-            send_reset_email(info.email, token);
+            if (!send_reset_email(info.email, token)) {
+                // 邮件发送失败，但为了安全，仍返回相同响应以防止邮箱枚举攻击
+                std::cerr << "邮件发送失败: " << info.email << std::endl;
+            }
             
             // 返回成功响应
             rest_response<std::string_view> data{true, "如果邮箱存在，重置链接已发送"};
