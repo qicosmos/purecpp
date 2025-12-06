@@ -43,4 +43,16 @@ template <typename T> struct rest_response {
   std::string timestamp;
   int code = 200;
 };
+
+// 修改密码相关结构体
+struct change_password_info {
+  uint64_t user_id;
+  std::string old_password;
+  std::string new_password;
+};
+
+struct change_password_resp_data {
+  bool success;
+  std::string message;
+};
 } // namespace purecpp

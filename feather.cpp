@@ -12,6 +12,7 @@
 #include "entity.hpp"
 #include "user_register.hpp"
 #include "user_login.hpp"
+#include "user_password.hpp"
 
 using namespace cinatra;
 using namespace ormpp;
@@ -157,6 +158,11 @@ int main() {
   server.set_http_handler<POST>(
       "/api/v1/login", &user_login_t::handle_login, usr_login,
       check_login_input{});
+  
+  user_password_t usr_password{};
+  server.set_http_handler<POST>(
+      "/api/v1/change_password", &user_password_t::handle_change_password, usr_password,
+      check_change_password_input{}, check_new_password{});
       
   server.sync_start();
 }

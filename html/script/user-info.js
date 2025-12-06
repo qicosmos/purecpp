@@ -98,7 +98,7 @@ function initUserInfo() {
     addUserButtonHoverEffect();
 }
 
-// 页面加载完成后执行
+// 页面加载完成后执行初始化
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initUserInfo);
 } else {
