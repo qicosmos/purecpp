@@ -66,7 +66,7 @@ namespace purecpp {
             asio::io_context io_context;
             
             // 创建SMTP客户端（使用SSL）
-            cinatra::smtp::client<cinatra::SSL> client(io_context);
+            cinatra::smtp::client<cinatra::NonSSL> client(io_context);
             
             // 设置服务器信息
             cinatra::smtp::email_server server_info;
@@ -95,7 +95,7 @@ namespace purecpp {
             
             email_data.text = email_text;
             client.set_email_data(email_data);
-            
+
             // 发送邮件
             client.start();
             
@@ -114,7 +114,6 @@ namespace purecpp {
     public:
         // 处理忘记密码请求
         void handle_forgot_password(coro_http_request& req, coro_http_response& resp) {
-            std::locale::global(std::locale("zh_CN.UTF-8"));
             forgot_password_info info = std::any_cast<forgot_password_info>(req.get_user_data());
             
             // 查询数据库
@@ -181,7 +180,6 @@ namespace purecpp {
         
         // 处理密码重置请求
         void handle_reset_password(coro_http_request& req, coro_http_response& resp) {
-            std::locale::global(std::locale("zh_CN.UTF-8"));
             reset_password_info info = std::any_cast<reset_password_info>(req.get_user_data());
             
             // 查询数据库
