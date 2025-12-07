@@ -4,6 +4,8 @@
 #include <optional>
 #include <sstream>
 #include <chrono>
+#include <unordered_set>
+#include <mutex>
 
 namespace purecpp {
 
@@ -113,8 +115,48 @@ struct TokenInfo {
     uint64_t timestamp;
 };
 
+// 令牌黑名单类
+class token_blacklist {
+public:
+    // 获取单例实例
+    static token_blacklist& instance() {
+        static token_blacklist instance;
+        return instance;
+    }
+
+    // 添加令牌到黑名单
+    void add(const std::string& token) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        blacklist_.insert(token);
+    }
+
+    // 检查令牌是否在黑名单中
+    bool contains(const std::string& token) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return blacklist_.find(token) != blacklist_.end();
+    }
+
+private:
+    // 私有构造函数
+    token_blacklist() = default;
+    // 禁用拷贝和赋值
+    token_blacklist(const token_blacklist&) = delete;
+    token_blacklist& operator=(const token_blacklist&) = delete;
+
+    // 令牌黑名单
+    std::unordered_set<std::string> blacklist_;
+    // 互斥锁保护并发访问
+    std::mutex mutex_;
+};
+
+
 // Token校验函数
 std::pair<TokenValidationResult, std::optional<TokenInfo>> validate_jwt_token(const std::string &token) {
+    // 检查令牌是否在黑名单中
+    if (token_blacklist::instance().contains(token)) {
+        return {TokenValidationResult::Expired, std::nullopt}; // 使用Expired状态表示已注销
+    }
+    
     // Base64解码
     auto decoded_opt = base64_decode(token);
     if (!decoded_opt) {

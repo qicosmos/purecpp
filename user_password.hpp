@@ -9,7 +9,6 @@ namespace purecpp {
 class user_password_t {
 public:
   void handle_change_password(coro_http_request &req, coro_http_response &resp) {
-    std::locale::global(std::locale("zh_CN.UTF-8"));
     change_password_info info = std::any_cast<change_password_info>(req.get_user_data());
 
     // 查询数据库

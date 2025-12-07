@@ -14,6 +14,7 @@
 #include "user_login.hpp"
 #include "user_password.hpp"
 #include "user_forgot_password.hpp"
+#include "user_logout.hpp"
 
 using namespace cinatra;
 using namespace ormpp;
@@ -195,6 +196,11 @@ int main() {
   server.set_http_handler<POST>(
       "/api/v1/reset-password", &user_forgot_password_t::handle_reset_password, usr_forgot_password,
       check_reset_password_input{}, check_reset_password{});
+      
+  // 添加退出登录路由
+  user_logout_t usr_logout{};
+  server.set_http_handler<POST, GET>(
+      "/api/v1/logout", &user_logout_t::handle_logout, usr_logout);
       
   server.sync_start();
 }

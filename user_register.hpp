@@ -16,13 +16,13 @@ public:
     auto conn = connection_pool<dbng<mysql>>::instance().get();
     conn_guard guard(conn);
     users_t user{.id = 0,
+                 .user_name = info.username,
+                 .email = info.email,
                  .pwd_hash = info.password,
                  .is_verifyed = false,
                  .created_at = get_timestamp_milliseconds(),
                  .last_active_at = 0};
-    std::copy(info.username.begin(), info.username.end(),
-              user.user_name.begin());
-    std::copy(info.email.begin(), info.email.end(), user.email.begin());
+
     uint64_t id = conn->get_insert_id_after_insert(user);
     if (id == 0) {
       auto err = conn->get_last_error();

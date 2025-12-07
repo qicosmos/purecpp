@@ -10,7 +10,7 @@ namespace purecpp {
 class user_login_t {
 public:
   void handle_login(coro_http_request &req, coro_http_response &resp) {
-    std::locale::global(std::locale("zh_CN.UTF-8"));
+    // 移除可能导致崩溃的全局语言环境设置
     login_info info = std::any_cast<login_info>(req.get_user_data());
 
     // 查询数据库

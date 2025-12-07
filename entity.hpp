@@ -30,8 +30,8 @@ struct db_config {
 
 struct users_t {
   uint64_t id;
-  std::array<char, 21> user_name; // unique, not null
-  std::array<char, 254> email;    // unique, not null
+  std::string user_name; // unique, not null
+  std::string email;    // unique, not null
   std::string pwd_hash;           // not null - 从std::string_view改为std::string以解决编译问题
   int is_verifyed;                // 邮箱是否已验证
   uint64_t created_at;
