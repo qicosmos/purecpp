@@ -47,7 +47,7 @@ namespace purecpp {
         return conf;
     }
 
-    // 发送真实邮件的函数
+    // 发送真实邮件的函数（使用cinatra SMTP客户端）
     inline bool send_reset_email(const std::string& email, const std::string& token) {
         // 加载配置
         db_config conf = load_config();
@@ -66,7 +66,7 @@ namespace purecpp {
             asio::io_context io_context;
             
             // 创建SMTP客户端（使用SSL）
-            cinatra::smtp::client<cinatra::NonSSL> client(io_context);
+            cinatra::smtp::client<cinatra::SSL> client(io_context);
             
             // 设置服务器信息
             cinatra::smtp::email_server server_info;
@@ -165,14 +165,14 @@ namespace purecpp {
                 return;
             }
             
-            // 发送重置邮件
+            // 发送重置邮件（使用新的send_email函数）
             if (!send_reset_email(info.email, token)) {
                 // 邮件发送失败，但为了安全，仍返回相同响应以防止邮箱枚举攻击
                 std::cerr << "邮件发送失败: " << info.email << std::endl;
             }
             
             // 返回成功响应
-            rest_response<std::string_view> data{true, "如果邮箱存在，重置链接已发送"};
+            rest_response<std::string_view> data{true, "密码重置链接已发送,请检查您的邮箱并完成后续操作"};
             std::string json;
             iguana::to_json(data, json);
             resp.set_status_and_content(status_type::ok, std::move(json));

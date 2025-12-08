@@ -6,7 +6,7 @@
    "db_pwd": "rhj",
    "db_conn_num": 50,
    "db_conn_timeout": 3600,
-   "smtp_host": "smtp.163.com",
+   "smtp_host": "smtp.qq.com",
    "smtp_port": 465,
    "smtp_user": "raohj1987@qq.com",
    "smtp_password": "yeeubaecvdcbfihe",

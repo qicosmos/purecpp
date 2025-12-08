@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
+namespace purecpp {
 // 错误处理函数
 void error(const std::string& msg) {
     perror(msg.c_str());
@@ -219,21 +219,4 @@ bool send_email(
 
     return success;
 }
-
-// 主函数测试
-int main() {
-    // 配置参数（需替换为实际信息）
-    std::string smtp_host = "smtp.qq.com";
-    int smtp_port = 465; // QQ邮箱SMTPS端口465，STARTTLS端口587
-    bool is_smtps = true;
-    std::string username = "your_qq_email@qq.com"; // 发件人邮箱
-    std::string password = "your_qq_auth_code";    // 邮箱授权码（非密码）
-    std::string from = username;
-    std::string to = "recipient@example.com";      // 收件人邮箱
-    std::string subject = "Test Email (SMTP Protocol)";
-    std::string body = "Hello, this is a test email sent via manual SMTP implementation in C++!\n";
-
-    // 发送邮件
-    bool result = send_email(smtp_host, smtp_port, is_smtps, username, password, from, to, subject, body);
-    return result ? 0 : 1;
-}
+} // namespace purecpp
