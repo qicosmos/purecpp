@@ -169,38 +169,40 @@ int main() {
         iguana::to_json(data, json);
         resp.set_content_type<resp_content_type::json>();
         resp.set_status_and_content(status_type::ok, std::move(json));
-      });
+      },
+      log_request_response{});
 
   user_register_t usr_reg{};
   server.set_http_handler<POST>(
       "/api/v1/register", &user_register_t::handle_register, usr_reg,
-      check_register_input{}, check_cpp_answer{}, check_user_name{},
+      log_request_response{}, check_register_input{}, check_cpp_answer{}, check_user_name{},
       check_email{}, check_password{});
   
   user_login_t usr_login{};
   server.set_http_handler<POST>(
       "/api/v1/login", &user_login_t::handle_login, usr_login,
-      check_login_input{});
+      log_request_response{}, check_login_input{});
   
   user_password_t usr_password{};
   server.set_http_handler<POST>(
       "/api/v1/change_password", &user_password_t::handle_change_password, usr_password,
-      check_change_password_input{}, check_new_password{});
+      log_request_response{}, check_change_password_input{}, check_new_password{});
   
   // 添加忘记密码和重置密码的路由
   user_forgot_password_t usr_forgot_password{};
   server.set_http_handler<POST>(
       "/api/v1/forgot-password", &user_forgot_password_t::handle_forgot_password, usr_forgot_password,
-      check_forgot_password_input{});
+      log_request_response{}, check_forgot_password_input{});
       
   server.set_http_handler<POST>(
       "/api/v1/reset-password", &user_forgot_password_t::handle_reset_password, usr_forgot_password,
-      check_reset_password_input{}, check_reset_password{});
+      log_request_response{}, check_reset_password_input{}, check_reset_password{});
       
   // 添加退出登录路由
   user_logout_t usr_logout{};
   server.set_http_handler<POST, GET>(
-      "/api/v1/logout", &user_logout_t::handle_logout, usr_logout);
+      "/api/v1/logout", &user_logout_t::handle_logout, usr_logout,
+      log_request_response{});
       
   server.sync_start();
 }
