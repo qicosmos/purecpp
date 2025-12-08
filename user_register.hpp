@@ -8,7 +8,7 @@ using namespace cinatra;
 namespace purecpp {
 
 class user_register_t {
-public:
+ public:
   void handle_register(coro_http_request &req, coro_http_response &resp) {
     register_info info = std::any_cast<register_info>(req.get_user_data());
 
@@ -43,4 +43,4 @@ public:
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };
-} // namespace purecpp
+}  // namespace purecpp

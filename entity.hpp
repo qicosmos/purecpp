@@ -1,10 +1,9 @@
 #pragma once
 #include <cinttypes>
-#include <string>
-
 #include <ormpp/connection_pool.hpp>
 #include <ormpp/dbng.hpp>
 #include <ormpp/mysql.hpp>
+#include <string>
 using namespace ormpp;
 
 namespace purecpp {
@@ -17,8 +16,8 @@ struct db_config {
   std::string db_pwd;
 
   int db_conn_num;
-  int db_conn_timeout; // seconds
-  
+  int db_conn_timeout;  // seconds
+
   // SMTP配置
   std::string smtp_host;
   int smtp_port;
@@ -30,19 +29,21 @@ struct db_config {
 
 struct users_t {
   uint64_t id;
-  std::string user_name; // unique, not null
-  std::string email;    // unique, not null
-  std::string pwd_hash;           // not null - 从std::string_view改为std::string以解决编译问题
-  int is_verifyed;                // 邮箱是否已验证
+  std::string user_name;  // unique, not null
+  std::string email;      // unique, not null
+  std::string
+      pwd_hash;  // not null - 从std::string_view改为std::string以解决编译问题
+  int is_verifyed;  // 邮箱是否已验证
   uint64_t created_at;
-  uint64_t last_active_at; // 最后活跃时间
+  uint64_t last_active_at;  // 最后活跃时间
 };
 
 inline constexpr std::string_view get_alias_struct_name(users_t *) {
-  return "users"; // 表名默认结构体名字(users_t), 这里可以修改表名
+  return "users";  // 表名默认结构体名字(users_t), 这里可以修改表名
 }
 
-template <typename T> struct rest_response {
+template <typename T>
+struct rest_response {
   bool success = true;
   std::string message;
   std::optional<std::vector<std::string>> errors;
@@ -82,7 +83,8 @@ struct password_reset_tokens_t {
   uint64_t expires_at;
 };
 
-inline constexpr std::string_view get_alias_struct_name(password_reset_tokens_t *) {
-  return "password_reset_tokens"; // 表名
+inline constexpr std::string_view get_alias_struct_name(
+    password_reset_tokens_t *) {
+  return "password_reset_tokens";  // 表名
 }
-} // namespace purecpp
+}  // namespace purecpp

@@ -1,29 +1,29 @@
 #pragma once
 #include <any>
+#include <chrono>
 #include <cinatra.hpp>
 #include <iguana/json_reader.hpp>
 #include <iguana/json_writer.hpp>
-#include <string_view>
-#include <system_error>
-#include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <string_view>
+#include <system_error>
 
 using namespace cinatra;
 using namespace iguana;
 
+#include <optional>
+#include <regex>
 #include <string>
 #include <vector>
-#include <regex>
-#include <optional>
 
 namespace purecpp {
 
 // 获取当前时间戳（毫秒）
 inline uint64_t get_timestamp_milliseconds() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()
-    ).count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
 }
 
 inline const std::vector<std::string_view> cpp_questions{
@@ -174,9 +174,11 @@ struct check_password {
     for (char c : info.password) {
       if (std::isupper(static_cast<unsigned char>(c))) {
         has_upper = true;
-      } else if (std::islower(static_cast<unsigned char>(c))) {
+      }
+      else if (std::islower(static_cast<unsigned char>(c))) {
         has_lower = true;
-      } else if (std::isdigit(static_cast<unsigned char>(c))) {
+      }
+      else if (std::isdigit(static_cast<unsigned char>(c))) {
         has_digit = true;
       }
     }
@@ -235,16 +237,17 @@ struct check_change_password_input {
     std::error_code ec;
     iguana::from_json(info, body, ec);
     if (ec) {
-      res.set_status_and_content(
-          status_type::bad_request,
-          make_error("修改密码信息格式不正确。"));
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("修改密码信息格式不正确。"));
       return false;
     }
-    
+
     // 校验用户ID、旧密码、新密码不能为空
-    if (info.user_id == 0 || info.old_password.empty() || info.new_password.empty()) {
-      res.set_status_and_content(status_type::bad_request,
-                                 make_error("用户ID、旧密码、新密码不能为空。"));
+    if (info.user_id == 0 || info.old_password.empty() ||
+        info.new_password.empty()) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error("用户ID、旧密码、新密码不能为空。"));
       return false;
     }
 
@@ -255,8 +258,9 @@ struct check_change_password_input {
 
 struct check_new_password {
   bool before(coro_http_request &req, coro_http_response &res) {
-    change_password_info info = std::any_cast<change_password_info>(req.get_user_data());
-    
+    change_password_info info =
+        std::any_cast<change_password_info>(req.get_user_data());
+
     // 检查新密码长度
     if (info.new_password.size() < 6 || info.new_password.size() > 20) {
       res.set_status_and_content(status_type::bad_request,
@@ -272,13 +276,15 @@ struct check_new_password {
     for (char c : info.new_password) {
       if (std::isupper(static_cast<unsigned char>(c))) {
         has_upper = true;
-      } else if (std::islower(static_cast<unsigned char>(c))) {
+      }
+      else if (std::islower(static_cast<unsigned char>(c))) {
         has_lower = true;
-      } else if (std::isdigit(static_cast<unsigned char>(c))) {
+      }
+      else if (std::isdigit(static_cast<unsigned char>(c))) {
         has_digit = true;
       }
     }
-    
+
     // 至少包含大小写字母和数字
     bool valid = has_upper && has_lower && has_digit;
     if (!valid) {
@@ -286,14 +292,14 @@ struct check_new_password {
                                  make_error("密码至少包含大小写字母和数字。"));
       return false;
     }
-    
+
     // 新密码不能与旧密码相同
     if (info.new_password == info.old_password) {
       res.set_status_and_content(status_type::bad_request,
                                  make_error("新密码不能与旧密码相同。"));
       return false;
     }
-    
+
     return true;
   }
 };
@@ -312,12 +318,11 @@ struct check_forgot_password_input {
     std::error_code ec;
     iguana::from_json(info, body, ec);
     if (ec) {
-      res.set_status_and_content(
-          status_type::bad_request,
-          make_error("请求格式不正确。"));
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("请求格式不正确。"));
       return false;
     }
-    
+
     // 校验邮箱不能为空
     if (info.email.empty()) {
       res.set_status_and_content(status_type::bad_request,
@@ -344,12 +349,11 @@ struct check_reset_password_input {
     std::error_code ec;
     iguana::from_json(info, body, ec);
     if (ec) {
-      res.set_status_and_content(
-          status_type::bad_request,
-          make_error("重置密码信息格式不正确。"));
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("重置密码信息格式不正确。"));
       return false;
     }
-    
+
     // 校验token和新密码不能为空
     if (info.token.empty() || info.new_password.empty()) {
       res.set_status_and_content(status_type::bad_request,
@@ -365,8 +369,9 @@ struct check_reset_password_input {
 // 重置密码时的密码验证
 struct check_reset_password {
   bool before(coro_http_request &req, coro_http_response &res) {
-    reset_password_info info = std::any_cast<reset_password_info>(req.get_user_data());
-    
+    reset_password_info info =
+        std::any_cast<reset_password_info>(req.get_user_data());
+
     // 检查新密码长度
     if (info.new_password.size() < 6 || info.new_password.size() > 20) {
       res.set_status_and_content(status_type::bad_request,
@@ -382,13 +387,15 @@ struct check_reset_password {
     for (char c : info.new_password) {
       if (std::isupper(static_cast<unsigned char>(c))) {
         has_upper = true;
-      } else if (std::islower(static_cast<unsigned char>(c))) {
+      }
+      else if (std::islower(static_cast<unsigned char>(c))) {
         has_lower = true;
-      } else if (std::isdigit(static_cast<unsigned char>(c))) {
+      }
+      else if (std::isdigit(static_cast<unsigned char>(c))) {
         has_digit = true;
       }
     }
-    
+
     // 至少包含大小写字母和数字
     bool valid = has_upper && has_lower && has_digit;
     if (!valid) {
@@ -396,7 +403,7 @@ struct check_reset_password {
                                  make_error("密码至少包含大小写字母和数字。"));
       return false;
     }
-    
+
     return true;
   }
 };
@@ -407,106 +414,109 @@ struct log_request_response {
   struct LogData {
     std::chrono::system_clock::time_point start_time;
   };
-  
+
   // 在请求处理前记录请求信息
   bool before(coro_http_request &req, coro_http_response &res) {
     // 记录请求开始时间
     auto start_time = std::chrono::system_clock::now();
-    
+
     // 使用std::any存储日志数据
     req.set_user_data(LogData{start_time});
-    
+
     // 记录请求信息
     std::ostringstream log_stream;
-    
+
     // 格式化时间戳
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         now.time_since_epoch() % std::chrono::seconds(1));
-    
+
     std::tm now_tm = *std::localtime(&now_c);
-    
-    log_stream << "[" 
-               << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") 
-               << "." << std::setfill('0') << std::setw(3) << now_ms.count() 
-               << "] " 
-               << "[REQUEST] "
-               << req.get_method() << " " 
-               << req.full_url() << " " 
-               << "User-Agent: " << req.get_header_value("User-Agent") << std::endl;
-    
+
+    log_stream << "[" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << "."
+               << std::setfill('0') << std::setw(3) << now_ms.count() << "] "
+               << "[REQUEST] " << req.get_method() << " " << req.full_url()
+               << " " << "User-Agent: " << req.get_header_value("User-Agent")
+               << std::endl;
+
     // 记录请求头
     log_stream << "[REQUEST HEADERS]:" << std::endl;
     auto headers = req.get_headers();
     for (auto &header : headers) {
       log_stream << "  " << header.name << ": " << header.value << std::endl;
     }
-    
+
     // 记录请求体
     auto body = req.get_body();
     if (!body.empty()) {
-      log_stream << "[REQUEST BODY]: " << (body.size() > 1000 ? std::string(body.substr(0, 1000)) + "..." : std::string(body)) << std::endl;
+      log_stream << "[REQUEST BODY]: "
+                 << (body.size() > 1000
+                         ? std::string(body.substr(0, 1000)) + "..."
+                         : std::string(body))
+                 << std::endl;
     }
-    
+
     // 输出日志
     std::cout << log_stream.str() << std::flush;
-    
-    return true; // 继续处理请求
+
+    return true;  // 继续处理请求
   }
-  
+
   // 在请求处理后记录响应信息
   bool after(coro_http_request &req, coro_http_response &res) {
     // 获取请求开始时间
     auto user_data = req.get_user_data();
     if (!user_data.has_value()) {
-      return true; // 如果没有日志数据，直接返回
+      return true;  // 如果没有日志数据，直接返回
     }
-    
-    auto* log_data = std::any_cast<LogData>(&user_data);
+
+    auto *log_data = std::any_cast<LogData>(&user_data);
     if (!log_data) {
-      return true; // 如果类型转换失败，直接返回
+      return true;  // 如果类型转换失败，直接返回
     }
-    
+
     auto end_time = std::chrono::system_clock::now();
-    
+
     // 计算处理时间
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - log_data->start_time).count();
-    
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        end_time - log_data->start_time)
+                        .count();
+
     // 记录响应信息
     std::ostringstream log_stream;
-    
+
     // 格式化时间戳
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         now.time_since_epoch() % std::chrono::seconds(1));
-    
+
     std::tm now_tm = *std::localtime(&now_c);
-    
-    log_stream << "[" 
-               << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") 
-               << "." << std::setfill('0') << std::setw(3) << now_ms.count() 
-               << "] " 
-               << "[RESPONSE] "
-               << req.get_method() << " " 
-               << req.full_url() << " " 
-               << "Status: " << static_cast<int>(res.status()) << " " 
+
+    log_stream << "[" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << "."
+               << std::setfill('0') << std::setw(3) << now_ms.count() << "] "
+               << "[RESPONSE] " << req.get_method() << " " << req.full_url()
+               << " " << "Status: " << static_cast<int>(res.status()) << " "
                << "Duration: " << duration << "ms" << std::endl;
-    
+
     // 记录响应体（只记录前1000个字符以避免日志过长）
     auto body = res.content();
     if (!body.empty()) {
-      log_stream << "[RESPONSE BODY]: " << (body.size() > 1000 ? std::string(body.substr(0, 1000)) + "..." : std::string(body)) << std::endl;
+      log_stream << "[RESPONSE BODY]: "
+                 << (body.size() > 1000
+                         ? std::string(body.substr(0, 1000)) + "..."
+                         : std::string(body))
+                 << std::endl;
     }
-    
+
     log_stream << "----------------------------------------" << std::endl;
-    
+
     // 输出日志
     std::cout << log_stream.str() << std::flush;
-    
-    return true; // 继续处理后续操作
+
+    return true;  // 继续处理后续操作
   }
 };
 
-} // namespace purecpp
+}  // namespace purecpp
