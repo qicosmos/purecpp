@@ -16,6 +16,7 @@ using namespace iguana;
 #include <regex>
 #include <string>
 #include <vector>
+#include "user_dto.hpp"
 
 namespace purecpp {
 
@@ -39,33 +40,11 @@ inline const std::vector<std::string_view> cpp_questions{
 inline const std::vector<std::string_view> cpp_answers{
     "const", "8", "shared_ptr", "unique_ptr", "内存泄漏", "0"};
 
-struct register_info {
-  std::string username;
-  std::string email;
-  std::string password;
-  std::string cpp_answer;
-  size_t question_index;
-};
+// register_info结构体已移至user_dto.hpp
 
-struct user_resp_data {
-  uint64_t user_id;
-  std::string username;
-  std::string email;
-  bool verification_required;
-};
 
-// 登录相关结构体
-struct login_info {
-  std::string username;
-  std::string password;
-};
+// user_resp_data、login_info和login_resp_data结构体已移至user_dto.hpp
 
-struct login_resp_data {
-  uint64_t user_id;
-  std::string username;
-  std::string email;
-  std::string token;
-};
 
 inline std::string make_error(std::string_view err_msg) {
   rest_response<std::string_view> data{false, std::string(err_msg)};

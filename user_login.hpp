@@ -76,7 +76,7 @@ class user_login_t {
     conn->update<users_t>(user, "id = ?", user.id);
 
     // 返回登录成功响应
-    login_resp_data login_data{user.id, user_name_str, email_str, token};
+    login_resp_data login_data{user.id, user_name_str, email_str, token, user.title, user.role, user.experience, user.level};
     rest_response<login_resp_data> data{};
     data.success = true;
     data.message = "登录成功";

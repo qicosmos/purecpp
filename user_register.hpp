@@ -21,7 +21,11 @@ class user_register_t {
                  .pwd_hash = info.password,
                  .is_verifyed = false,
                  .created_at = get_timestamp_milliseconds(),
-                 .last_active_at = 0};
+                 .last_active_at = 0,
+                 .title = UserTitle::NEWBIE,  // 默认头衔
+                 .role = "user",        // 默认普通用户角色
+                 .experience = 0,        // 初始经验值
+                 .level = UserLevel::LEVEL_1}; // 初始等级
 
     uint64_t id = conn->get_insert_id_after_insert(user);
     if (id == 0) {
@@ -35,7 +39,7 @@ class user_register_t {
     data.success = true;
     data.message = "注册成功";
     data.data =
-        user_resp_data{id, info.username, info.email, bool(user.is_verifyed)};
+        user_resp_data{id, info.username, info.email, bool(user.is_verifyed), user.title, user.role, user.experience, user.level};
 
     std::string json;
     iguana::to_json(data, json);

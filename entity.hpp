@@ -7,6 +7,34 @@
 using namespace ormpp;
 
 namespace purecpp {
+// 用户等级枚举
+enum class UserLevel : uint32_t {
+    LEVEL_1 = 1,   // 等级1 - 新手
+    LEVEL_2 = 2,   // 等级2 - 入门
+    LEVEL_3 = 3,   // 等级3 - 进阶
+    LEVEL_4 = 4,   // 等级4 - 熟练
+    LEVEL_5 = 5,   // 等级5 - 专家
+    LEVEL_6 = 6,   // 等级6 - 大师
+    LEVEL_7 = 7,   // 等级7 - 宗师
+    LEVEL_8 = 8,   // 等级8 - 传奇
+    LEVEL_9 = 9,   // 等级9 - 神话
+    LEVEL_10 = 10  // 等级10 - 不朽
+};
+
+// 用户头衔枚举
+enum class UserTitle : uint32_t {
+    NEWBIE = 0,           // 新手
+    DEVELOPER = 1,        // 开发者
+    SENIOR_DEVELOPER = 2, // 高级开发者
+    ENGINEER = 3,         // 工程师
+    SENIOR_ENGINEER = 4,  // 高级工程师
+    ARCHITECT = 5,        // 架构师
+    TECH_LEAD = 6,        // 技术负责人
+    EXPERT = 7,           // 专家
+    MASTER = 8,           // 大师
+    LEGEND = 9            // 传奇
+};
+
 // database config
 struct db_config {
   std::string db_ip;
@@ -36,43 +64,17 @@ struct users_t {
   int is_verifyed;  // 邮箱是否已验证
   uint64_t created_at;
   uint64_t last_active_at;  // 最后活跃时间
+  
+  // 用户身份信息
+  UserTitle title;        // 头衔枚举
+  std::string role;       // 角色，如"user"、"admin"、"moderator"
+  uint64_t experience;    // 经验值
+  UserLevel level;        // 用户等级枚举
 };
 
 inline constexpr std::string_view get_alias_struct_name(users_t *) {
   return "users";  // 表名默认结构体名字(users_t), 这里可以修改表名
 }
-
-template <typename T>
-struct rest_response {
-  bool success = true;
-  std::string message;
-  std::optional<std::vector<std::string>> errors;
-  std::optional<T> data;
-  std::string timestamp;
-  int code = 200;
-};
-
-// 修改密码相关结构体
-struct change_password_info {
-  uint64_t user_id;
-  std::string old_password;
-  std::string new_password;
-};
-
-struct change_password_resp_data {
-  bool success;
-  std::string message;
-};
-
-// 忘记密码相关结构体
-struct forgot_password_info {
-  std::string email;
-};
-
-struct reset_password_info {
-  std::string token;
-  std::string new_password;
-};
 
 // 密码重置token表
 struct password_reset_tokens_t {
