@@ -115,7 +115,8 @@ TEST_CASE("User Login API Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证错误信息 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_error = "用户名或密码错误";
-    CHECK(resp.resp_body.find(expected_error) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_error) != std::string::npos);
   }
 
   SUBCASE("Login with non-existent username") {
@@ -137,7 +138,8 @@ TEST_CASE("User Login API Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证错误信息 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_error = "用户名或密码错误";
-    CHECK(resp.resp_body.find(expected_error) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_error) != std::string::npos);
   }
 
   SUBCASE("Login with non-existent email") {
@@ -159,7 +161,8 @@ TEST_CASE("User Login API Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证错误信息 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_error = "用户名或密码错误";
-    CHECK(resp.resp_body.find(expected_error) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_error) != std::string::npos);
   }
 
   SUBCASE("Login with empty request body") {
@@ -266,7 +269,8 @@ TEST_CASE("User Login API Comprehensive Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证错误信息 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_error = "用户名或密码错误";
-    CHECK(resp.resp_body.find(expected_error) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_error) != std::string::npos);
   }
 
   SUBCASE("Login with non-existent username") {
@@ -288,7 +292,8 @@ TEST_CASE("User Login API Comprehensive Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证错误信息 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_error = "用户名或密码错误";
-    CHECK(resp.resp_body.find(expected_error) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_error) != std::string::npos);
   }
 }
 
@@ -316,11 +321,16 @@ TEST_CASE("User Change Password Tests") {
     std::cout << "Login response (for change password test): " << resp.resp_body
               << std::endl;
 
-    // 解析响应获取user_id和token
-    login_resp_data login_data;
-    iguana::from_json(login_data, resp.resp_body);
-    user_id = login_data.user_id;
-    token = login_data.token;
+    // 验证响应
+    CHECK(resp.resp_body.find("\"success\":true") != std::string::npos);
+    
+    if (resp.resp_body.find("\"token\":\"") != std::string::npos) {
+      // 解析响应获取user_id和token
+      rest_response<login_resp_data> login_data {};
+      iguana::from_json(login_data, resp.resp_body);
+      user_id = login_data.data->user_id;
+      token = login_data.data->token;
+    }
   }
   
   // 测试修改密码功能
@@ -346,7 +356,8 @@ TEST_CASE("User Change Password Tests") {
     CHECK(resp.resp_body.find("\"success\":true") != std::string::npos);
     // 验证响应 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_success = "密码修改成功";
-    CHECK(resp.resp_body.find(expected_success) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_success) != std::string::npos);
     
     // 验证新密码是否可以用于登录
     coro_http_client login_client{};
@@ -385,7 +396,8 @@ TEST_CASE("User Change Password Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证响应 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_wrong_old_pwd = "旧密码错误";
-    CHECK(resp.resp_body.find(expected_wrong_old_pwd) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_wrong_old_pwd) != std::string::npos);
   }
 }
 
@@ -411,8 +423,9 @@ TEST_CASE("User Reset Password Tests") {
     // 验证响应（不区分邮箱是否存在）
     CHECK(resp.resp_body.find("\"success\":true") != std::string::npos);
     // 验证响应（不区分邮箱是否存在）- 使用unicode_to_utf8转换后再进行判断
-    std::string expected_reset_sent = "如果邮箱存在，重置链接已发送";
-    CHECK(resp.resp_body.find(expected_reset_sent) != std::string::npos);
+    std::string expected_reset_sent = "密码重置链接已发送,请检查您的邮箱并完成后续操作";
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_reset_sent) != std::string::npos);
   }
   
   // 注意：由于需要验证邮件中的token，完整的重置密码流程测试需要手动验证或使用模拟邮件服务
@@ -436,6 +449,7 @@ TEST_CASE("User Reset Password Tests") {
     CHECK(resp.resp_body.find("\"success\":false") != std::string::npos);
     // 验证响应 - 使用unicode_to_utf8转换后再进行判断
     std::string expected_invalid_token = "重置密码链接无效或已过期";
-    CHECK(resp.resp_body.find(expected_invalid_token) != std::string::npos);
+    std::string rsp_body_u8 = purecpp::escape_unicode_to_utf8(resp.resp_body.data());
+    CHECK(rsp_body_u8.find(expected_invalid_token) != std::string::npos);
   }
 }

@@ -209,8 +209,9 @@ int main() {
 
   // 添加个人资料查看路由
   user_profile_t usr_profile{};
-  server.set_http_handler<GET>("/api/v1/profile", &user_profile_t::handle_get_profile,
-                                usr_profile, log_request_response{});
+  server.set_http_handler<GET>("/api/v1/profile",
+                               &user_profile_t::handle_get_profile, usr_profile,
+                               log_request_response{});
 
   server.sync_start();
 }

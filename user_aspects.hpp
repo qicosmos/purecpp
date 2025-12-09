@@ -17,6 +17,7 @@ using namespace iguana;
 #include <string>
 #include <vector>
 #include "user_dto.hpp"
+#include "error_info.hpp"
 
 namespace purecpp {
 
@@ -40,15 +41,21 @@ inline const std::vector<std::string_view> cpp_questions{
 inline const std::vector<std::string_view> cpp_answers{
     "const", "8", "shared_ptr", "unique_ptr", "内存泄漏", "0"};
 
-// register_info结构体已移至user_dto.hpp
-
-
-// user_resp_data、login_info和login_resp_data结构体已移至user_dto.hpp
-
-
-inline std::string make_error(std::string_view err_msg) {
-  rest_response<std::string_view> data{false, std::string(err_msg)};
+// 生成错误响应的辅助函数
+inline std::string make_error(std::string_view err_msg, int code = 400) {
+  purecpp::rest_response<std::string_view> data{false, std::string(err_msg)};
+  data.code = code;
   std::string json;
+  iguana::to_json(data, json);
+  return json;
+}
+
+// 生成包含错误列表的错误响应
+inline std::string make_error(const std::vector<std::string>& errors, std::string_view err_msg = "请求参数错误", int code = 400) {
+  purecpp::rest_response<std::string_view> data{false, std::string(err_msg)};
+  data.code = code;
+  data.errors = errors;
+  std::string json; 
   iguana::to_json(data, json);
   return json;
 }
@@ -58,7 +65,7 @@ struct check_register_input {
     auto body = req.get_body();
     if (body.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("register info is empty"));
+                                 make_error(PURECPP_ERROR_REGISTER_INFO_EMPTY));
       return false;
     }
 
@@ -68,7 +75,7 @@ struct check_register_input {
     if (ec) {
       res.set_status_and_content(
           status_type::bad_request,
-          make_error("register info is not a required json"));
+          make_error(PURECPP_ERROR_REGISTER_JSON_INVALID));
       return false;
     }
 
@@ -84,7 +91,7 @@ struct check_cpp_answer {
 
     if (!r) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("问题的答案不对。"));
+                                 make_error(PURECPP_ERROR_CPP_ANSWER_WRONG));
       return false;
     }
     return true;
@@ -96,7 +103,7 @@ struct check_user_name {
     register_info info = std::any_cast<register_info>(req.get_user_data());
     if (info.username.empty() || info.username.size() > 64) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("用户名长度非法应改为1-20。"));
+                                 make_error(PURECPP_ERROR_USERNAME_LENGTH));
       return false;
     }
 
@@ -106,8 +113,7 @@ struct check_user_name {
     if (!r) {
       res.set_status_and_content(
           status_type::bad_request,
-          make_error(
-              "只允许字母 (a-z, A-Z), 数字 (0-9), 下划线 (_), 连字符 (-)。"));
+          make_error(PURECPP_ERROR_USERNAME_CHARACTER));
       return false;
     }
     return true;
@@ -119,7 +125,7 @@ struct check_email {
     register_info info = std::any_cast<register_info>(req.get_user_data());
     if (info.email.empty() || info.email.size() > 254) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("邮箱格式不合法。"));
+                                 make_error(PURECPP_ERROR_EMAIL_FORMAT));
       return false;
     }
 
@@ -129,7 +135,7 @@ struct check_email {
 
     if (!r) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("邮箱格式不合法。"));
+                                 make_error(PURECPP_ERROR_EMAIL_FORMAT));
       return false;
     }
     return true;
@@ -141,7 +147,7 @@ struct check_password {
     register_info info = std::any_cast<register_info>(req.get_user_data());
     if (info.password.size() < 6 || info.password.size() > 20) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码长度不合法，长度6-20位。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_LENGTH));
       return false;
     }
 
@@ -164,7 +170,7 @@ struct check_password {
     bool r = has_upper && has_lower && has_digit;
     if (!r) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码至少包含大小写字母和数字。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
       return false;
     }
     return true;
@@ -177,7 +183,7 @@ struct check_login_input {
     auto body = req.get_body();
     if (body.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("用户名(邮箱)、密码不能为空。"));
+                                 make_error(PURECPP_ERROR_LOGIN_INFO_EMPTY));
       return false;
     }
 
@@ -187,13 +193,13 @@ struct check_login_input {
     if (ec) {
       res.set_status_and_content(
           status_type::bad_request,
-          make_error("login info is not a required json"));
+          make_error(PURECPP_ERROR_LOGIN_JSON_INVALID));
       return false;
     }
     // 校验用户名、密码不能为空
     if (info.username.empty() || info.password.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("用户名(邮箱)、密码不能为空。"));
+                                 make_error(PURECPP_ERROR_LOGIN_CREDENTIALS_EMPTY));
       return false;
     }
 
@@ -208,7 +214,7 @@ struct check_change_password_input {
     auto body = req.get_body();
     if (body.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("修改密码信息不能为空。"));
+                                 make_error(PURECPP_ERROR_CHANGE_PASSWORD_EMPTY));
       return false;
     }
 
@@ -217,7 +223,7 @@ struct check_change_password_input {
     iguana::from_json(info, body, ec);
     if (ec) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("修改密码信息格式不正确。"));
+                                 make_error(PURECPP_ERROR_CHANGE_PASSWORD_JSON_INVALID));
       return false;
     }
 
@@ -226,7 +232,7 @@ struct check_change_password_input {
         info.new_password.empty()) {
       res.set_status_and_content(
           status_type::bad_request,
-          make_error("用户ID、旧密码、新密码不能为空。"));
+          make_error(PURECPP_ERROR_CHANGE_PASSWORD_REQUIRED_FIELDS));
       return false;
     }
 
@@ -243,7 +249,7 @@ struct check_new_password {
     // 检查新密码长度
     if (info.new_password.size() < 6 || info.new_password.size() > 20) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码长度不合法，长度6-20位。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_LENGTH));
       return false;
     }
 
@@ -268,14 +274,14 @@ struct check_new_password {
     bool valid = has_upper && has_lower && has_digit;
     if (!valid) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码至少包含大小写字母和数字。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
       return false;
     }
 
     // 新密码不能与旧密码相同
     if (info.new_password == info.old_password) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("新密码不能与旧密码相同。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_NEW_SAME_AS_OLD));
       return false;
     }
 
@@ -289,7 +295,7 @@ struct check_forgot_password_input {
     auto body = req.get_body();
     if (body.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("邮箱不能为空。"));
+                                 make_error(PURECPP_ERROR_EMAIL_EMPTY));
       return false;
     }
 
@@ -298,14 +304,14 @@ struct check_forgot_password_input {
     iguana::from_json(info, body, ec);
     if (ec) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("请求格式不正确。"));
+                                 make_error(PURECPP_ERROR_FORGOT_PASSWORD_JSON_INVALID));
       return false;
     }
 
     // 校验邮箱不能为空
     if (info.email.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("邮箱不能为空。"));
+                                 make_error(PURECPP_ERROR_EMAIL_EMPTY));
       return false;
     }
 
@@ -320,7 +326,7 @@ struct check_reset_password_input {
     auto body = req.get_body();
     if (body.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("重置密码信息不能为空。"));
+                                 make_error(PURECPP_ERROR_RESET_PASSWORD_EMPTY));
       return false;
     }
 
@@ -329,14 +335,14 @@ struct check_reset_password_input {
     iguana::from_json(info, body, ec);
     if (ec) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("重置密码信息格式不正确。"));
+                                 make_error(PURECPP_ERROR_RESET_PASSWORD_JSON_INVALID));
       return false;
     }
 
     // 校验token和新密码不能为空
     if (info.token.empty() || info.new_password.empty()) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("token和新密码不能为空。"));
+                                 make_error(PURECPP_ERROR_RESET_PASSWORD_REQUIRED_FIELDS));
       return false;
     }
 
@@ -354,7 +360,7 @@ struct check_reset_password {
     // 检查新密码长度
     if (info.new_password.size() < 6 || info.new_password.size() > 20) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码长度不合法，长度6-20位。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_LENGTH));
       return false;
     }
 
@@ -379,7 +385,7 @@ struct check_reset_password {
     bool valid = has_upper && has_lower && has_digit;
     if (!valid) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码至少包含大小写字母和数字。"));
+                                 make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
       return false;
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.hpp"
+#include "error_info.hpp"
 #include "user_aspects.hpp"
 
 using namespace cinatra;

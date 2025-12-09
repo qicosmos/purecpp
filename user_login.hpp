@@ -48,7 +48,7 @@ class user_login_t {
 
     if (!found) {
       // 用户不存在
-      rest_response<std::string_view> data{false, "用户名或密码错误"};
+      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
       resp.set_status_and_content(status_type::bad_request, std::move(json));
@@ -57,7 +57,7 @@ class user_login_t {
 
     // 验证密码
     if (user.pwd_hash != info.password) {
-      rest_response<std::string_view> data{false, "用户名或密码错误"};
+      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
       resp.set_status_and_content(status_type::bad_request, std::move(json));
