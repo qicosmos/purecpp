@@ -52,7 +52,7 @@ inline bool send_reset_email(const std::string& email,
 
   // 生成重置链接
   std::string reset_link =
-      "http://localhost:3389/html/reset-password.html?token=" + token;
+      "http://localhost:3389/html/reset_password.html?token=" + token;
 
   try {
     // 创建io_context

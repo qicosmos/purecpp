@@ -78,4 +78,23 @@ namespace purecpp {
         std::string token;
         std::string new_password;
     };
+
+    // 空数据结构体，用于没有具体数据的响应
+    struct empty_data {
+    };
+
+    // 个人资料相关结构体
+    struct profile_resp_data {
+        uint64_t user_id;
+        std::string username;
+        std::string email;
+        bool is_verifyed;
+        UserTitle title;
+        std::string role;
+        uint64_t experience;
+        UserLevel level;
+        std::optional<std::string> bio;
+        std::optional<std::string> avatar;
+        std::optional<std::string> created_at;
+    };
 } // namespace purecpp

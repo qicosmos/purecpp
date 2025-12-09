@@ -1,5 +1,6 @@
 #pragma once
 #include <cinttypes>
+#include <optional>
 #include <ormpp/connection_pool.hpp>
 #include <ormpp/dbng.hpp>
 #include <ormpp/mysql.hpp>
@@ -70,6 +71,10 @@ struct users_t {
   std::string role;       // 角色，如"user"、"admin"、"moderator"
   uint64_t experience;    // 经验值
   UserLevel level;        // 用户等级枚举
+  
+  // 个人资料信息
+  std::optional<std::string> bio;  // 个人简介
+  std::optional<std::string> avatar;  // 头像URL
 };
 
 inline constexpr std::string_view get_alias_struct_name(users_t *) {

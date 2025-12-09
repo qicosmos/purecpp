@@ -356,7 +356,7 @@ sequenceDiagram
     participant Server as 服务器
     participant DB as 数据库
     
-    Client->>Server: POST /api/change-password (包含修改密码信息)
+    Client->>Server: POST /api/change_password (包含修改密码信息)
     Server->>Server: 验证请求体格式
     Server->>Server: 验证用户ID、旧密码、新密码非空
     Server->>Server: 验证新密码复杂度
@@ -371,7 +371,7 @@ sequenceDiagram
 
 ### 4.3 输入接口
 
-**API端点**: `POST /api/change-password`
+**API端点**: `POST /api/change_password`
 
 **请求参数**:
 | 参数名 | 类型 | 描述 | 约束 |
@@ -516,7 +516,7 @@ sequenceDiagram
     participant DB as 数据库
     participant Email as 邮件服务器
     
-    Client->>Server: POST /api/forgot-password (包含邮箱)
+    Client->>Server: POST /api/forgot_password (包含邮箱)
     Server->>Server: 验证请求体格式
     Server->>Server: 验证邮箱非空
     Server->>DB: 根据邮箱查询用户
@@ -530,7 +530,7 @@ sequenceDiagram
 
 ### 5.3 输入接口
 
-**API端点**: `POST /api/forgot-password`
+**API端点**: `POST /api/forgot_password`
 
 **请求参数**:
 | 参数名 | 类型 | 描述 | 约束 |
@@ -686,7 +686,7 @@ sequenceDiagram
     participant Server as 服务器
     participant DB as 数据库
     
-    Client->>Server: POST /api/reset-password (包含令牌和新密码)
+    Client->>Server: POST /api/reset_password (包含令牌和新密码)
     Server->>Server: 验证请求体格式
     Server->>Server: 验证令牌和新密码非空
     Server->>Server: 验证新密码复杂度
@@ -704,7 +704,7 @@ sequenceDiagram
 
 ### 6.3 输入接口
 
-**API端点**: `POST /api/reset-password`
+**API端点**: `POST /api/reset_password`
 
 **请求参数**:
 | 参数名 | 类型 | 描述 | 约束 |

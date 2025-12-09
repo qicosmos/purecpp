@@ -11,6 +11,7 @@
 #include "entity.hpp"
 #include "user_login.hpp"
 #include "user_password.hpp"
+#include "user_profile.hpp"
 #include "user_register.hpp"
 
 using namespace cinatra;
@@ -198,13 +199,18 @@ int main() {
 
   // 添加忘记密码和重置密码的路由
   server.set_http_handler<POST>(
-      "/api/v1/forgot-password", &user_password_t::handle_forgot_password,
+      "/api/v1/forgot_password", &user_password_t::handle_forgot_password,
       usr_password, log_request_response{}, check_forgot_password_input{});
 
   server.set_http_handler<POST>(
-      "/api/v1/reset-password", &user_password_t::handle_reset_password,
+      "/api/v1/reset_password", &user_password_t::handle_reset_password,
       usr_password, log_request_response{}, check_reset_password_input{},
       check_reset_password{});
+
+  // 添加个人资料查看路由
+  user_profile_t usr_profile{};
+  server.set_http_handler<GET>("/api/v1/profile", &user_profile_t::handle_get_profile,
+                                usr_profile, log_request_response{});
 
   server.sync_start();
 }

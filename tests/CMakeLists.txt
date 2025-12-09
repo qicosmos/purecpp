@@ -19,3 +19,8 @@ find_package(OpenSSL REQUIRED)
 add_executable(test_send_email test_sendemail.cpp)
 target_link_libraries(test_send_email ormpp OpenSSL::SSL OpenSSL::Crypto)
 add_test(NAME test_send_email COMMAND test_send_email)
+
+# 添加Unicode工具测试
+add_executable(test_unicode_utils test_unicode_utils.cpp)
+target_link_libraries(test_unicode_utils ormpp)
+add_test(NAME test_unicode_utils COMMAND test_unicode_utils)
