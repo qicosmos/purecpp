@@ -3,10 +3,33 @@
 #include "entity.hpp"
 #include "error_info.hpp"
 #include "user_aspects.hpp"
+#include <openssl/sha.h>
 
 using namespace cinatra;
 
 namespace purecpp {
+
+inline std::string sha256_simple(std::string_view input) {
+  unsigned char hash[SHA256_DIGEST_LENGTH];
+  SHA256(reinterpret_cast<const unsigned char *>(input.data()), input.size(),
+         hash);
+
+  std::string hex(SHA256_DIGEST_LENGTH * 2, '\0');
+
+  for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+    char buf[2];
+
+    // 高4位
+    std::to_chars(buf, buf + 1, hash[i] >> 4, 16);
+    hex[i * 2] = buf[0];
+
+    // 低4位
+    std::to_chars(buf, buf + 1, hash[i] & 0x0F, 16);
+    hex[i * 2 + 1] = buf[0];
+  }
+
+  return hex;
+}
 
 class user_register_t {
  public:
@@ -16,17 +39,14 @@ class user_register_t {
     // save to database
     auto conn = connection_pool<dbng<mysql>>::instance().get();
     users_t user{.id = 0,
-                 .user_name = info.username,
-                 .email = info.email,
-                 .pwd_hash = info.password,
                  .is_verifyed = false,
                  .created_at = get_timestamp_milliseconds(),
-                 .last_active_at = 0,
-                 .title = UserTitle::NEWBIE,  // 默认头衔
-                 .role = "user",        // 默认普通用户角色
-                 .experience = 0,        // 初始经验值
-                 .level = UserLevel::LEVEL_1}; // 初始等级
-
+                 .last_active_at = 0};
+    std::string pwd_sha = sha256_simple(info.password);
+    user.pwd_hash = pwd_sha;
+    std::copy(info.username.begin(), info.username.end(),
+              user.user_name.begin());
+    std::copy(info.email.begin(), info.email.end(), user.email.begin());
     uint64_t id = conn->get_insert_id_after_insert(user);
     if (id == 0) {
       auto err = conn->get_last_error();
