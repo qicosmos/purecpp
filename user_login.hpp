@@ -24,7 +24,6 @@ class user_login_t {
 
     // 查询数据库
     auto conn = connection_pool<dbng<mysql>>::instance().get();
-    conn_guard guard(conn);
 
     // 先尝试通过用户名查找
     auto users_by_name = conn->query_s<users_t>("user_name = ?", info.username);
@@ -73,7 +72,13 @@ class user_login_t {
 
     // 更新最后活跃时间
     user.last_active_at = get_timestamp_milliseconds();
-    conn->update<users_t>(user, "id = ?", user.id);
+    if (conn->update<users_t>(user) != 1) {
+      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
+      std::string json;
+      iguana::to_json(data, json);
+      resp.set_status_and_content(status_type::bad_request, std::move(json));
+      return;
+    }
 
     // 返回登录成功响应
     login_resp_data login_data{user.id, user_name_str, email_str, token, user.title, user.role, user.experience, user.level};

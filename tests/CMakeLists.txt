@@ -17,6 +17,7 @@ add_test(NAME test_jwt_token COMMAND test_jwt_token)
 # 添加发送邮件测试
 find_package(OpenSSL REQUIRED)
 add_executable(test_send_email test_sendemail.cpp)
+target_compile_options(test_send_email PRIVATE -DCINATRA_ENABLE_SSL)
 target_link_libraries(test_send_email ormpp OpenSSL::SSL OpenSSL::Crypto)
 add_test(NAME test_send_email COMMAND test_send_email)
 

@@ -15,7 +15,6 @@ class user_register_t {
 
     // save to database
     auto conn = connection_pool<dbng<mysql>>::instance().get();
-    conn_guard guard(conn);
     users_t user{.id = 0,
                  .user_name = info.username,
                  .email = info.email,

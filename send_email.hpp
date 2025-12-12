@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 namespace purecpp {
+
 // 错误处理函数
 void error(const std::string& msg) {
   perror(msg.c_str());
@@ -41,11 +42,11 @@ SSL_CTX* create_ssl_context(bool is_smtps) {
 
 // 建立TCP连接
 int create_tcp_socket(const std::string& host, int port) {
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
     error("socket creation failed");
 
-  struct hostent* server = gethostbyname(host.c_str());
+  struct hostent* server = ::gethostbyname(host.c_str());
   if (!server)
     error("no such host");
 
@@ -55,15 +56,15 @@ int create_tcp_socket(const std::string& host, int port) {
   memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
   serv_addr.sin_port = htons(port);
 
-  if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-    close(sockfd);
+  if (::connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    ::close(sockfd);
     error("connection failed");
   }
   return sockfd;
 }
 
 // 发送SMTP命令并接收响应
-std::string send_smtp_command(int sockfd, SSL* ssl, const std::string& cmd,
+  std::string send_smtp_command(int sockfd, ::SSL* ssl, const std::string& cmd,
                               bool use_ssl) {
   std::string send_cmd = cmd + "\r\n";
   ssize_t bytes_sent;
@@ -117,12 +118,13 @@ bool send_email(const std::string& smtp_host, int smtp_port,
                 const std::string& username,
                 const std::string& password,  // 授权码
                 const std::string& from, const std::string& to,
-                const std::string& subject, const std::string& body) {
+                const std::string& subject, const std::string& body,
+                bool is_html = false) {
   // 初始化OpenSSL
   init_openssl();
   SSL_CTX* ctx = create_ssl_context(is_smtps);
   int sockfd = -1;
-  SSL* ssl = nullptr;
+  ::SSL* ssl = nullptr;
   bool use_ssl = is_smtps;
   bool success = false;
 
@@ -145,8 +147,8 @@ bool send_email(const std::string& smtp_host, int smtp_port,
     // 1. 接收服务器就绪响应
     char buffer[4096];
     memset(buffer, 0, sizeof(buffer));
-    ssize_t bytes_read = use_ssl ? SSL_read(ssl, buffer, sizeof(buffer) - 1)
-                                 : read(sockfd, buffer, sizeof(buffer) - 1);
+    ssize_t bytes_read = use_ssl ? ::SSL_read(ssl, buffer, sizeof(buffer) - 1)
+                                 : ::read(sockfd, buffer, sizeof(buffer) - 1);
     if (bytes_read < 0 || buffer[0] != '2')
       throw std::runtime_error("server not ready: " + std::string(buffer));
     std::cout << "Server response: " << buffer;
@@ -215,16 +217,26 @@ bool send_email(const std::string& smtp_host, int smtp_port,
                                 to +
                                 "\r\n"
                                 "Subject: " +
-                                subject + "\r\n\r\n" + body + "\r\n.";
+                                subject;
+    
+    // 添加HTML内容类型头部
+    if (is_html) {
+      email_content += "\r\nContent-Type: text/html; charset=utf-8";
+    }
+    
+    email_content += "\r\n\r\n" + body + "\r\n.";
     response = send_smtp_command(sockfd, ssl, email_content, use_ssl);
     if (response[0] != '2')
       throw std::runtime_error("DATA content failed: " + response);
     std::cout << "Email content sent\n";
 
     // 8. 关闭连接
-    response = send_smtp_command(sockfd, ssl, "QUIT", use_ssl);
-    if (response[0] != '2')
-      throw std::runtime_error("QUIT failed: " + response);
+    try {
+      response = send_smtp_command(sockfd, ssl, "QUIT", use_ssl);
+      // 不严格检查QUIT响应，因为有些服务器可能会立即关闭连接
+    } catch (...) {
+      // 忽略QUIT命令的任何错误
+    }
     success = true;
     std::cout << "Email sent successfully!\n";
   } catch (const std::exception& e) {
@@ -237,7 +249,7 @@ bool send_email(const std::string& smtp_host, int smtp_port,
   if (ssl)
     SSL_free(ssl);
   if (sockfd >= 0)
-    close(sockfd);
+    ::close(sockfd);
   SSL_CTX_free(ctx);
   EVP_cleanup();
 

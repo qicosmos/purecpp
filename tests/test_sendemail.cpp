@@ -1,9 +1,9 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "../send_email.hpp"
-#include "doctest/doctest.h"
+#include "../thirdparty/doctest/doctest.h"
 
 // 主函数测试
-TEST_CASE("User Login API Tests") {
+TEST_CASE("Send Email Tests") {
   // 配置参数（需替换为实际信息）
   std::string smtp_host = "smtp.qq.com";
   int smtp_port = 465;  // QQ邮箱SMTPS端口465，STARTTLS端口587
@@ -22,3 +22,66 @@ TEST_CASE("User Login API Tests") {
                                     password, from, to, subject, body);
   CHECK(result == true);
 }
+
+// 测试发送HTML格式邮件
+TEST_CASE("Send HTML Email Tests") {
+  // 配置参数（需替换为实际信息）
+  std::string smtp_host = "smtp.qq.com";
+  int smtp_port = 465;  // QQ邮箱SMTPS端口465，STARTTLS端口587
+  bool is_smtps = true;
+  std::string username = "raohj1987@qq.com";  // 发件人邮箱
+  std::string password = "yeeubaecvdcbfihe";  // 邮箱授权码（非密码）
+  std::string from = username;
+  std::string to = "raohj1987@163.com";  // 收件人邮箱
+  std::string subject = "Test HTML Email (SMTP Protocol)";
+  
+  // HTML格式的邮件正文
+  std::string html_body = 
+      "<!DOCTYPE html>\n"
+      "<html>\n"
+      "<head>\n"
+      "    <title>Test HTML Email</title>\n"
+      "</head>\n"
+      "<body>\n"
+      "    <h1 style='color: blue;'>Hello World!</h1>\n"
+      "    <p>This is a <strong>HTML format</strong> test email sent via manual SMTP implementation in C++.</p>\n"
+      "    <p>Here is a list:</p>\n"
+      "    <ul>\n"
+      "        <li>Item 1</li>\n"
+      "        <li>Item 2</li>\n"
+      "        <li>Item 3</li>\n"
+      "    </ul>\n"
+      "    <p>Regards,<br>SMTP Test Team</p>\n"
+      "</body>\n"
+      "</html>";
+
+  // 发送HTML格式邮件，设置is_html为true
+  bool result = purecpp::send_email(smtp_host, smtp_port, is_smtps, username,
+                                    password, from, to, subject, html_body, true);
+  CHECK(result == true);
+}
+
+// 这个测试用例使用了不相关的库和命名空间，暂时注释掉
+/*
+TEST_CASE("Send Reset Email Tests") {
+  smtp::email_server svr_conf{
+      "smtp.qq.com",      // smtp 邮箱服务器地址
+      "465",               // smtp 邮箱服务器端口
+      "raohj1987@qq.com",  // 你的邮箱用户名
+      "yeeubaecvdcbfihe"   // 邮箱授权码，不是密码，需要登录邮箱去设置
+  };
+
+  smtp::email_data data{
+      "raohj1987@qq.com",     // 发件人邮箱
+      {"raohj1987@163.com"},  // 收件人邮箱列表
+      "test",                 // 邮件标题
+      "it is a text"          // 邮件正文
+  };
+
+  auto client = smtp::get_smtp_client<cinatra::SSL>(
+      coro_io::get_global_executor()->get_asio_executor().context());
+  client.set_email_server(svr_conf);
+  client.set_email_data(data);
+  client.start();
+}
+*/

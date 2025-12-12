@@ -266,6 +266,8 @@
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('header-container').innerHTML = html;
+                    // 重新初始化用户菜单，因为header.html是动态加载的
+                    initUserMenu();
                 });
         });
 
@@ -293,14 +295,17 @@
 
             async loadUserProfile() {
                 try {
-                    // 模拟从本地存储获取用户ID
-                    // 在实际应用中，这应该从登录状态或认证令牌中获取
-                    const userId = localStorage.getItem('userId');
+                    // 从本地存储或sessionStorage获取用户信息
+                    const userInfo = localStorage.getItem('purecpp_user') || sessionStorage.getItem('purecpp_user');
                     
-                    if (!userId) {
+                    if (!userInfo) {
                         this.errorMessage = '您尚未登录，请先登录';
                         return;
                     }
+
+                    // 解析用户信息
+                    const user = JSON.parse(userInfo);
+                    const userId = user.user_id;
 
                     const response = await fetch('/api/v1/profile', {
                         method: 'GET',
@@ -332,6 +337,8 @@
         // 初始化应用
         document.addEventListener('DOMContentLoaded', () => {
             profileApp.init();
+            // 初始化用户信息显示
+            initUserInfo();
         });
     </script>
 </body>

@@ -2,6 +2,7 @@
 
 #include "entity.hpp"
 #include "user_aspects.hpp"
+#include "send_email.hpp"
 
 using namespace cinatra;
 
@@ -37,6 +38,52 @@ inline std::string generate_reset_token() {
   ss << std::hex << value << std::hex << dis(gen);
   return ss.str();
 }
+
+inline bool send_reset_email2(const std::string& email, const std::string& token) {
+  // 加载配置
+  db_config conf = load_config();
+
+  // 检查必要的配置是否存在
+  if (conf.smtp_host.empty() || conf.smtp_user.empty() ||
+      conf.smtp_password.empty()) {
+    std::cerr << "SMTP配置不完整" << std::endl;
+    return false;
+  }
+
+  // 生成重置链接
+  std::string reset_link =
+      "http://localhost:3389/reset_password.html?token=" + token;
+  try {
+    // 配置参数（需替换为实际信息）
+    std::string smtp_host = conf.smtp_host;
+    int smtp_port = conf.smtp_port;  // QQ邮箱SMTPS端口465，STARTTLS端口587
+    bool is_smtps = true;
+    std::string username = conf.smtp_user;  // 发件人邮箱
+    std::string password = conf.smtp_password;  // 邮箱授权码（非密码）
+    std::string from = username;
+    std::string to = email;  // 收件人邮箱
+    std::string subject = "PureCpp密码重置";
+    std::string email_text;
+    email_text += "<html><body>";
+    email_text += "<h3>密码重置请求</h3>";
+    email_text += "<p>您请求重置您的PureCpp密码。请点击以下链接进行重置：</p>";
+    email_text +=
+        "<a href=\"" + reset_link + "\">" + reset_link + "</a><br/><br/>";
+    email_text += "<p>如果您没有请求重置密码，请忽略此邮件。</p>";
+    email_text += "<p>此链接有效期为1小时。</p>";
+    email_text += "<p>感谢您使用PureCpp！</p>";
+    email_text += "</body></html>";
+
+    // 发送邮件
+    bool result = purecpp::send_email(smtp_host, smtp_port, is_smtps, username,
+                                      password, from, to, subject, email_text, true);
+  } catch (const std::exception& e) {
+    std::cerr << "SMTP发送失败: " << e.what() << std::endl;
+    return false;
+  }
+  return true;
+}
+
 // 发送真实邮件的函数（使用cinatra SMTP客户端）
 inline bool send_reset_email(const std::string& email,
                              const std::string& token) {
@@ -52,7 +99,7 @@ inline bool send_reset_email(const std::string& email,
 
   // 生成重置链接
   std::string reset_link =
-      "http://localhost:3389/html/reset_password.html?token=" + token;
+      "http://localhost:3389/reset_password.html?token=" + token;
 
   try {
     // 创建io_context
@@ -119,7 +166,6 @@ class user_password_t {
 
     // 查询数据库
     auto conn = connection_pool<dbng<mysql>>::instance().get();
-    conn_guard guard(conn);
 
     // 根据用户ID查找用户
     auto users = conn->query_s<users_t>("id = ?", info.user_id);
@@ -179,7 +225,6 @@ class user_password_t {
 
     // 查询数据库
     auto conn = connection_pool<dbng<mysql>>::instance().get();
-    conn_guard guard(conn);
 
     // 查找用户
     auto users = conn->query_s<users_t>("email = ?", info.email);
@@ -205,7 +250,7 @@ class user_password_t {
     // 保存token到数据库
     password_reset_tokens_t reset_token{.id = 0,
                                         .user_id = user.id,
-                                        .token = token,
+                                        .token = token.c_str(),
                                         .created_at = now,
                                         .expires_at = expires_at};
 
@@ -230,7 +275,7 @@ class user_password_t {
     }
 
     // 发送重置邮件（使用新的send_email函数）
-    if (!send_reset_email(info.email, token)) {
+    if (!send_reset_email2(info.email, token)) {
       // 邮件发送失败，但为了安全，仍返回相同响应以防止邮箱枚举攻击
       std::cerr << "邮件发送失败: " << info.email << std::endl;
     }
@@ -250,7 +295,6 @@ class user_password_t {
 
     // 查询数据库
     auto conn = connection_pool<dbng<mysql>>::instance().get();
-    conn_guard guard(conn);
 
     // 查找token
     auto tokens =

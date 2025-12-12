@@ -87,7 +87,7 @@ bool init_db() {
       std::cout << "Table 'users' created successfully." << std::endl;
     }
     else {
-      std::cout << "Table 'users' already exists." << std::endl;
+      std::cout << "Table 'users' created error." << std::endl;
     }
   } catch (const std::exception& e) {
     // 检查异常是否是因为表已经存在
@@ -112,7 +112,7 @@ bool init_db() {
                 << std::endl;
     }
     else {
-      std::cout << "Table 'password_reset_tokens' already exists." << std::endl;
+      std::cout << "Table 'password_reset_tokens' create error." << std::endl;
     }
   } catch (const std::exception& e) {
     // 检查异常是否是因为表已经存在
