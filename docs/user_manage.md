@@ -103,6 +103,8 @@ struct users_t {
   int is_verifyed;      // 邮箱是否已验证
   uint64_t created_at;  // 创建时间
   uint64_t last_active_at; // 最后活跃时间
+  uint32_t login_attempts;  // 登录失败次数
+  uint64_t last_failed_login;  // 最后一次登录失败时间戳
 };
 ```
 
@@ -263,6 +265,8 @@ struct login_resp_data {
 | 用户名/密码为空 | 400 | 用户名(邮箱)、密码不能为空。 |
 | 用户不存在 | 400 | 用户名或密码错误 |
 | 密码错误 | 400 | 用户名或密码错误 |
+| 登录失败次数过多 | 400 | 登录失败次数过多，账号已被锁定10分钟。 |
+| 账号锁定中 | 400 | 登录失败次数过多，账号已被锁定。请在X分钟Y秒后重试。 |
 
 ### 3.7 安全考虑
 
@@ -270,6 +274,8 @@ struct login_resp_data {
 2. 密码验证：确保密码正确
 3. JWT令牌：使用安全的令牌机制进行身份验证
 4. 最后活跃时间更新：跟踪用户活动
+5. 登录失败次数限制：当密码输入错误次数大于5次时，10分钟内禁止用户登录
+6. 密码哈希：使用SHA256算法对密码进行哈希处理
 
 ### 3.8 代码实现
 
@@ -309,8 +315,55 @@ void handle_login(coro_http_request &req, coro_http_response &resp) {
     return;
   }
   
+  // 检查用户是否被锁定
+  const uint32_t MAX_LOGIN_ATTEMPTS = 5;
+  const uint64_t LOCK_DURATION = 10 * 60 * 1000;  // 10分钟，单位毫秒
+  const uint64_t current_time = get_timestamp_milliseconds();
+  
+  if (user.login_attempts >= MAX_LOGIN_ATTEMPTS) {
+    // 检查锁定时间是否已过
+    if (current_time - user.last_failed_login < LOCK_DURATION) {
+      // 用户仍处于锁定状态
+      uint64_t remaining_time = 
+          LOCK_DURATION - (current_time - user.last_failed_login);
+      uint64_t remaining_minutes = remaining_time / (60 * 1000);
+      uint64_t remaining_seconds = (remaining_time % (60 * 1000)) / 1000;
+      
+      std::string message = "登录失败次数过多，账号已被锁定。请在" +
+                            std::to_string(remaining_minutes) + "分钟" +
+                            std::to_string(remaining_seconds) + "秒后重试。";
+      
+      rest_response<std::string> data{false, message};
+      std::string json;
+      iguana::to_json(data, json);
+      resp.set_status_and_content(status_type::bad_request, std::move(json));
+      return;
+    }
+    else {
+      // 锁定时间已过，重置失败次数
+      user.login_attempts = 0;
+    }
+  }
+  
   // 验证密码
-  if (user.pwd_hash != info.password) {
+  if (user.pwd_hash != purecpp::sha256_simple(info.password)) {
+    // 密码错误，更新失败次数和最后失败时间
+    user.login_attempts++;
+    user.last_failed_login = current_time;
+    
+    // 保存更新到数据库
+    conn->update<users_t>(user, "id = " + std::to_string(user.id));
+    
+    // 检查是否需要锁定账号
+    if (user.login_attempts >= MAX_LOGIN_ATTEMPTS) {
+      std::string message = "登录失败次数过多，账号已被锁定10分钟。";
+      rest_response<std::string> data{false, message};
+      std::string json;
+      iguana::to_json(data, json);
+      resp.set_status_and_content(status_type::bad_request, std::move(json));
+      return;
+    }
+    
     rest_response<std::string_view> data{false, "用户名或密码错误"};
     std::string json;
     iguana::to_json(data, json);
@@ -318,16 +371,17 @@ void handle_login(coro_http_request &req, coro_http_response &resp) {
     return;
   }
   
+  // 登录成功，重置失败次数
+  user.login_attempts = 0;
+  user.last_active_at = current_time;
+  conn->update<users_t>(user, "id = " + std::to_string(user.id));
+  
   // 将std::array转换为std::string
   std::string user_name_str(user.user_name.data());
   std::string email_str(user.email.data());
   
   // 生成JWT token
   std::string token = generate_jwt_token(user.id, user_name_str, email_str);
-  
-  // 更新最后活跃时间
-  user.last_active_at = get_timestamp_milliseconds();
-  conn->update<users_t>(user, "id = " + std::to_string(user.id));
    
   // 返回登录成功响应
   login_resp_data login_data{user.id, user_name_str, email_str, token};
