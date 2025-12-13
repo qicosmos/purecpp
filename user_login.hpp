@@ -3,6 +3,7 @@
 #include "entity.hpp"
 #include "jwt_token.hpp"
 #include "user_aspects.hpp"
+#include "user_register.hpp"
 
 using namespace cinatra;
 
@@ -55,7 +56,7 @@ class user_login_t {
     }
 
     // 验证密码
-    if (user.pwd_hash != info.password) {
+    if (user.pwd_hash != purecpp::sha256_simple(info.password)) {
       rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
@@ -72,7 +73,7 @@ class user_login_t {
 
     // 更新最后活跃时间
     user.last_active_at = get_timestamp_milliseconds();
-    if (conn->update<users_t>(user) != 1) {
+    if (conn->update<users_t>(user, "id=" + std::to_string(user.id)) != 1) {
       rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);

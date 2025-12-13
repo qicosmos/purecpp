@@ -327,7 +327,7 @@ void handle_login(coro_http_request &req, coro_http_response &resp) {
   
   // 更新最后活跃时间
   user.last_active_at = get_timestamp_milliseconds();
-  conn->update<users_t>(user, "id = ?", user.id);
+  conn->update<users_t>(user, "id = " + std::to_string(user.id));
    
   // 返回登录成功响应
   login_resp_data login_data{user.id, user_name_str, email_str, token};
@@ -821,8 +821,8 @@ void handle_reset_password(coro_http_request& req, coro_http_response& resp) {
     users_t user = users[0];
     
     // 更新用户密码
-    user.pwd_hash = info.new_password;
-    bool update_success = conn->update<users_t>(user, "id = ?", user.id);
+    user.pwd_hash = purecpp::sha256_simple(info.new_password);
+    bool update_success = conn->update<users_t>(user, "id = " + std::to_string(user.id));
     if (!update_success) {
         auto err = conn->get_last_error();
         std::cout << err << "\n";

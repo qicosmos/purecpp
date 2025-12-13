@@ -3,6 +3,7 @@
 #include "entity.hpp"
 #include "user_aspects.hpp"
 #include "send_email.hpp"
+#include "user_register.hpp"
 
 using namespace cinatra;
 
@@ -182,7 +183,7 @@ class user_password_t {
     users_t user = users[0];
 
     // 验证旧密码
-    if (user.pwd_hash != info.old_password) {
+    if (user.pwd_hash != purecpp::sha256_simple(info.old_password)) {
       rest_response<std::string_view> data{false, "旧密码错误"};
       std::string json;
       iguana::to_json(data, json);
@@ -190,11 +191,9 @@ class user_password_t {
       return;
     }
 
-    // 使用直接的SQL语句更新密码
-    std::string update_sql = "UPDATE users SET pwd_hash = '" +
-                             info.new_password +
-                             "' WHERE id = " + std::to_string(info.user_id);
-    auto result = conn->execute(update_sql);
+    // 更新新密码
+    user.pwd_hash = purecpp::sha256_simple(info.new_password);
+    auto result = conn->update<users_t>(user, "id=" + std::to_string(user.id));
 
     if (result != 1) {
       rest_response<std::string_view> data{false, "修改密码失败"};
@@ -250,9 +249,10 @@ class user_password_t {
     // 保存token到数据库
     password_reset_tokens_t reset_token{.id = 0,
                                         .user_id = user.id,
-                                        .token = token.c_str(),
                                         .created_at = now,
                                         .expires_at = expires_at};
+
+    std::copy(token.begin(), token.end(), reset_token.token.begin());
 
     // 删除该用户之前的所有重置token
     std::string delete_sql =
@@ -335,8 +335,8 @@ class user_password_t {
     users_t user = users[0];
 
     // 更新用户密码
-    user.pwd_hash = info.new_password;
-    bool update_success = conn->update<users_t>(user, "id = ?", user.id);
+    user.pwd_hash = purecpp::sha256_simple(info.new_password);
+    bool update_success = conn->update<users_t>(user, "id = " + std::to_string(user.id));
     if (!update_success) {
       auto err = conn->get_last_error();
       std::cout << err << "\n";

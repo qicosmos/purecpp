@@ -89,8 +89,8 @@ struct user_profile_t {
     // 构造响应数据
     profile_resp_data profile_data;
     profile_data.user_id = user.id;
-    profile_data.username = user.user_name;
-    profile_data.email = user.email;
+    profile_data.username = user.user_name.data();
+    std::copy(user.email.begin(), user.email.end(), profile_data.email.begin());
     profile_data.is_verifyed = user.is_verifyed;
     profile_data.title = user.title;
     profile_data.role = user.role;

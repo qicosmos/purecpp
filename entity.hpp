@@ -58,7 +58,7 @@ struct db_config {
 
 struct users_t {
   uint64_t id;
-  std::array<char, 32> user_name;  // unique, not null
+  std::array<char, 21> user_name;  // unique, not null
   std::array<char, 254> email;      // unique, not null
   std::string
       pwd_hash;  // not null - 从std::string_view改为std::string以解决编译问题
@@ -76,7 +76,6 @@ struct users_t {
   std::optional<std::string> bio;  // 个人简介
   std::optional<std::string> avatar;  // 头像URL
 };
-REGISTER_AUTO_KEY(users_t, id); // 定义主键
 
 inline constexpr std::string_view get_alias_struct_name(users_t *) {
   return "users";  // 表名默认结构体名字(users_t), 这里可以修改表名
@@ -86,11 +85,10 @@ inline constexpr std::string_view get_alias_struct_name(users_t *) {
 struct password_reset_tokens_t {
   uint64_t id;
   uint64_t user_id;
-  std::array<char, 128> token;
+  std::array<char, 129> token;
   uint64_t created_at;
   uint64_t expires_at;
 };
-REGISTER_AUTO_KEY(password_reset_tokens_t, id); // 定义主键
 
 inline constexpr std::string_view get_alias_struct_name(
     password_reset_tokens_t *) {
@@ -98,3 +96,4 @@ inline constexpr std::string_view get_alias_struct_name(
 }
 
 }  // namespace purecpp
+
