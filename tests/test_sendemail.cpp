@@ -1,17 +1,26 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "../entity.hpp"
 #include "../send_email.hpp"
 #include "../thirdparty/doctest/doctest.h"
+#include "../user_password.hpp"
 
 // 主函数测试
 TEST_CASE("Send Email Tests") {
+  auto option_conf = purecpp::load_smtp_config();
+  CHECK(option_conf);
+  if (option_conf) {
+    std::cerr << "无法加载SMTP配置" << std::endl;
+    return;
+  }
+  auto conf = option_conf.value();
   // 配置参数（需替换为实际信息）
-  std::string smtp_host = "smtp.qq.com";
-  int smtp_port = 465;  // QQ邮箱SMTPS端口465，STARTTLS端口587
+  std::string smtp_host = conf.smtp_host;
+  int smtp_port = conf.smtp_port;  // QQ邮箱SMTPS端口465，STARTTLS端口587
   bool is_smtps = true;
-  std::string username = "raohj1987@qq.com";  // 发件人邮箱
-  std::string password = "yeeubaecvdcbfihe";  // 邮箱授权码（非密码）
+  std::string username = conf.smtp_user;  // 发件人邮箱
+  std::string password = conf.smtp_password;  // 邮箱授权码（非密码）
   std::string from = username;
-  std::string to = "raohj1987@163.com";  // 收件人邮箱
+  std::string to = "your_email@163.com";  // 收件人邮箱
   std::string subject = "Test Email (SMTP Protocol)";
   std::string body =
       "Hello, this is a test email sent via manual SMTP implementation in "
@@ -25,14 +34,20 @@ TEST_CASE("Send Email Tests") {
 
 // 测试发送HTML格式邮件
 TEST_CASE("Send HTML Email Tests") {
-  // 配置参数（需替换为实际信息）
-  std::string smtp_host = "smtp.qq.com";
-  int smtp_port = 465;  // QQ邮箱SMTPS端口465，STARTTLS端口587
+  auto option_conf = purecpp::load_smtp_config();
+  CHECK(option_conf);
+  if (option_conf) {
+    std::cerr << "无法加载SMTP配置" << std::endl;
+    return;
+  }
+  auto conf = option_conf.value();
+  std::string smtp_host = conf.smtp_host;
+  int smtp_port = conf.smtp_port;  // QQ邮箱SMTPS端口465，STARTTLS端口587
   bool is_smtps = true;
-  std::string username = "raohj1987@qq.com";  // 发件人邮箱
-  std::string password = "yeeubaecvdcbfihe";  // 邮箱授权码（非密码）
+  std::string username = conf.smtp_user;  // 发件人邮箱
+  std::string password = conf.smtp_password;  // 邮箱授权码（非密码）
   std::string from = username;
-  std::string to = "raohj1987@163.com";  // 收件人邮箱
+  std::string to = "your_email@163.com";  // 收件人邮箱
   std::string subject = "Test HTML Email (SMTP Protocol)";
   
   // HTML格式的邮件正文

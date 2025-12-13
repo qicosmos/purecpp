@@ -1,7 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
-
-#include "../unicode_utils.hpp"
+#include "unicode_utils.hpp"
 
 using namespace purecpp;
 

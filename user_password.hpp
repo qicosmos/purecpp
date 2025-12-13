@@ -1,29 +1,30 @@
 #pragma once
 
 #include "entity.hpp"
-#include "user_aspects.hpp"
 #include "send_email.hpp"
+#include "user_aspects.hpp"
 #include "user_register.hpp"
 
 using namespace cinatra;
 
 namespace purecpp {
 // 读取配置文件的辅助函数
-inline db_config load_config() {
-  std::ifstream file("cfg/db_config.json", std::ios::in);
+inline std::optional<smtp_config> load_smtp_config() {
+  std::ifstream file("cfg/smtp_config.json", std::ios::in);
   if (!file.is_open()) {
     std::cerr << "无法打开配置文件" << std::endl;
-    return db_config{};
+    return std::nullopt;
   }
 
   std::string json(1024, ' ');
   file.read(json.data(), json.size());
   json.resize(file.gcount());  // 调整到实际读取的大小
 
-  db_config conf;
+  smtp_config conf;
   iguana::from_json(conf, json);
   return conf;
 }
+
 // 生成随机token的函数
 inline std::string generate_reset_token() {
   // 使用当前时间和随机数生成token
@@ -40,9 +41,15 @@ inline std::string generate_reset_token() {
   return ss.str();
 }
 
-inline bool send_reset_email2(const std::string& email, const std::string& token) {
+inline bool send_reset_email2(const std::string& email,
+                              const std::string& token) {
   // 加载配置
-  db_config conf = load_config();
+  auto option_conf = load_smtp_config();
+  if (option_conf) {
+    std::cerr << "无法加载SMTP配置" << std::endl;
+    return false;
+  }
+  auto conf = option_conf.value();
 
   // 检查必要的配置是否存在
   if (conf.smtp_host.empty() || conf.smtp_user.empty() ||
@@ -59,7 +66,7 @@ inline bool send_reset_email2(const std::string& email, const std::string& token
     std::string smtp_host = conf.smtp_host;
     int smtp_port = conf.smtp_port;  // QQ邮箱SMTPS端口465，STARTTLS端口587
     bool is_smtps = true;
-    std::string username = conf.smtp_user;  // 发件人邮箱
+    std::string username = conf.smtp_user;      // 发件人邮箱
     std::string password = conf.smtp_password;  // 邮箱授权码（非密码）
     std::string from = username;
     std::string to = email;  // 收件人邮箱
@@ -76,8 +83,9 @@ inline bool send_reset_email2(const std::string& email, const std::string& token
     email_text += "</body></html>";
 
     // 发送邮件
-    bool result = purecpp::send_email(smtp_host, smtp_port, is_smtps, username,
-                                      password, from, to, subject, email_text, true);
+    bool result =
+        purecpp::send_email(smtp_host, smtp_port, is_smtps, username, password,
+                            from, to, subject, email_text, true);
   } catch (const std::exception& e) {
     std::cerr << "SMTP发送失败: " << e.what() << std::endl;
     return false;
@@ -89,8 +97,12 @@ inline bool send_reset_email2(const std::string& email, const std::string& token
 inline bool send_reset_email(const std::string& email,
                              const std::string& token) {
   // 加载配置
-  db_config conf = load_config();
-
+  auto option_conf = load_smtp_config();
+  if (option_conf) {
+    std::cerr << "无法加载SMTP配置" << std::endl;
+    return false;
+  }
+  auto conf = option_conf.value();
   // 检查必要的配置是否存在
   if (conf.smtp_host.empty() || conf.smtp_user.empty() ||
       conf.smtp_password.empty()) {
@@ -99,8 +111,7 @@ inline bool send_reset_email(const std::string& email,
   }
 
   // 生成重置链接
-  std::string reset_link =
-      "http://localhost:3389/reset_password.html?token=" + token;
+  std::string reset_link = conf.reset_password_url + "?token=" + token;
 
   try {
     // 创建io_context
@@ -336,7 +347,8 @@ class user_password_t {
 
     // 更新用户密码
     user.pwd_hash = purecpp::sha256_simple(info.new_password);
-    bool update_success = conn->update<users_t>(user, "id = " + std::to_string(user.id));
+    bool update_success =
+        conn->update<users_t>(user, "id = " + std::to_string(user.id));
     if (!update_success) {
       auto err = conn->get_last_error();
       std::cout << err << "\n";

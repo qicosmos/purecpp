@@ -5,11 +5,5 @@
    "db_user_name": "rhj",
    "db_pwd": "rhj",
    "db_conn_num": 50,
-   "db_conn_timeout": 3600,
-   "smtp_host": "smtp.qq.com",
-   "smtp_port": 465,
-   "smtp_user": "raohj1987@qq.com",
-   "smtp_password": "yeeubaecvdcbfihe",
-   "smtp_from_email": "raohj1987@qq.com",
-   "smtp_from_name": "PureCpp管理员"
+   "db_conn_timeout": 3600
 }

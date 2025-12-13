@@ -48,7 +48,8 @@ class user_login_t {
 
     if (!found) {
       // 用户不存在
-      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
+      rest_response<std::string_view> data{
+          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
       resp.set_status_and_content(status_type::bad_request, std::move(json));
@@ -57,7 +58,8 @@ class user_login_t {
 
     // 验证密码
     if (user.pwd_hash != purecpp::sha256_simple(info.password)) {
-      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
+      rest_response<std::string_view> data{
+          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
       resp.set_status_and_content(status_type::bad_request, std::move(json));
@@ -74,7 +76,8 @@ class user_login_t {
     // 更新最后活跃时间
     user.last_active_at = get_timestamp_milliseconds();
     if (conn->update<users_t>(user, "id=" + std::to_string(user.id)) != 1) {
-      rest_response<std::string_view> data{false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
+      rest_response<std::string_view> data{
+          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
       std::string json;
       iguana::to_json(data, json);
       resp.set_status_and_content(status_type::bad_request, std::move(json));
@@ -82,7 +85,9 @@ class user_login_t {
     }
 
     // 返回登录成功响应
-    login_resp_data login_data{user.id, user_name_str, email_str, token, user.title, user.role, user.experience, user.level};
+    login_resp_data login_data{user.id,         user_name_str, email_str,
+                               token,           user.title,    user.role,
+                               user.experience, user.level};
     rest_response<login_resp_data> data{};
     data.success = true;
     data.message = "登录成功";

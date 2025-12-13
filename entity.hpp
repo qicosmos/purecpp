@@ -1,5 +1,4 @@
 #pragma once
-#include <cinttypes>
 #include <optional>
 #include <ormpp/connection_pool.hpp>
 #include <ormpp/dbng.hpp>
@@ -46,14 +45,17 @@ struct db_config {
 
   int db_conn_num;
   int db_conn_timeout;  // seconds
+};
 
-  // SMTP配置
+// smtp config
+struct smtp_config {
   std::string smtp_host;
   int smtp_port;
   std::string smtp_user;
   std::string smtp_password;
   std::string smtp_from_email;
   std::string smtp_from_name;
+  std::string reset_password_url;
 };
 
 struct users_t {
