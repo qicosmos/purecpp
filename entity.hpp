@@ -77,6 +77,10 @@ struct users_t {
   // 个人资料信息
   std::optional<std::string> bio;  // 个人简介
   std::optional<std::string> avatar;  // 头像URL
+  
+  // 登录安全相关字段
+  uint32_t login_attempts;  // 登录失败次数
+  uint64_t last_failed_login;  // 最后一次登录失败时间戳
 };
 // 注册users_t的主键
 REGISTER_AUTO_KEY(users_t, id);

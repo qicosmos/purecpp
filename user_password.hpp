@@ -347,6 +347,8 @@ class user_password_t {
 
     // 更新用户密码
     user.pwd_hash = purecpp::sha256_simple(info.new_password);
+    user.login_attempts = 0;
+    user.last_failed_login = 0;
     bool update_success =
         conn->update<users_t>(user, "id = " + std::to_string(user.id));
     if (!update_success) {
