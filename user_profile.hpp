@@ -8,8 +8,8 @@
 
 #include "cinatra.hpp"
 #include "entity.hpp"
-#include "user_dto.hpp"
 #include "user_aspects.hpp"
+#include "user_dto.hpp"
 
 using namespace cinatra;
 using namespace ormpp;
@@ -52,14 +52,15 @@ struct user_profile_t {
       std::string json;
       iguana::to_json(data, json);
       resp.set_content_type<resp_content_type::json>();
-      resp.set_status_and_content(status_type::internal_server_error, std::move(json));
+      resp.set_status_and_content(status_type::internal_server_error,
+                                  std::move(json));
       return;
     }
 
-    users_t user;
+    profile_resp_data profile_data;
     try {
       // 使用query_s方法，它返回一个vector
-      auto users = conn->query_s<users_t>("where id = ?", user_id);
+      auto users = conn->query_s<users_t>("id = ?", user_id);
       if (users.empty()) {
         rest_response<empty_data> data{};
         data.success = false;
@@ -72,7 +73,25 @@ struct user_profile_t {
         resp.set_status_and_content(status_type::not_found, std::move(json));
         return;
       }
-      user = std::move(users[0]);
+      auto& user = users[0];
+      // 构造响应数据
+      profile_data.user_id = user.id;
+      profile_data.username = user.user_name.data();
+      profile_data.email = user.email.data();
+      profile_data.is_verifyed = user.is_verifyed;
+      profile_data.title = user.title;
+      profile_data.role = user.role;
+      profile_data.experience = user.experience;
+
+      profile_data.level = user.level;
+      profile_data.bio = user.bio;
+      profile_data.avatar = user.avatar;
+
+      // 将时间戳转换为ISO格式
+      auto created_time = std::chrono::system_clock::time_point(
+          std::chrono::seconds(user.created_at));
+      profile_data.created_at = std::format("{:%FT%T}", created_time);
+
     } catch (const std::exception& e) {
       rest_response<empty_data> data{};
       data.success = false;
@@ -82,26 +101,10 @@ struct user_profile_t {
       std::string json;
       iguana::to_json(data, json);
       resp.set_content_type<resp_content_type::json>();
-      resp.set_status_and_content(status_type::internal_server_error, std::move(json));
+      resp.set_status_and_content(status_type::internal_server_error,
+                                  std::move(json));
       return;
     }
-
-    // 构造响应数据
-    profile_resp_data profile_data;
-    profile_data.user_id = user.id;
-    profile_data.username = user.user_name.data();
-    std::copy(user.email.begin(), user.email.end(), profile_data.email.begin());
-    profile_data.is_verifyed = user.is_verifyed;
-    profile_data.title = user.title;
-    profile_data.role = user.role;
-    profile_data.experience = user.experience;
-    profile_data.level = user.level;
-    profile_data.bio = user.bio;
-    profile_data.avatar = user.avatar;
-    
-    // 将时间戳转换为ISO格式
-    auto created_time = std::chrono::system_clock::time_point(std::chrono::seconds(user.created_at));
-    profile_data.created_at = std::format("{:%FT%T}", created_time);
 
     rest_response<profile_resp_data> data{};
     data.data = profile_data;

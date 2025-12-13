@@ -76,6 +76,8 @@ struct users_t {
   std::optional<std::string> bio;  // 个人简介
   std::optional<std::string> avatar;  // 头像URL
 };
+// 注册users_t的主键
+REGISTER_AUTO_KEY(users_t, id);
 
 inline constexpr std::string_view get_alias_struct_name(users_t *) {
   return "users";  // 表名默认结构体名字(users_t), 这里可以修改表名
@@ -89,6 +91,8 @@ struct password_reset_tokens_t {
   uint64_t created_at;
   uint64_t expires_at;
 };
+// 注册password_reset_tokens_t的主键
+REGISTER_AUTO_KEY(password_reset_tokens_t, id);
 
 inline constexpr std::string_view get_alias_struct_name(
     password_reset_tokens_t *) {
