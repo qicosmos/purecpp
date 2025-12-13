@@ -20,11 +20,14 @@ using namespace iguana;
 std::string g_username;
 std::string g_email;
 std::string g_password = "Password123";
+std::string register_url = "http://127.0.0.1:3389/api/v1/register";
+std::string login_url = "http://127.0.0.1:3389/api/v1/login";
+std::string forget_password_url = "http://127.0.0.1:3389/api/v1/forgot_password";
+std::string reset_password_url = "http://127.0.0.1:3389/api/v1/reset_password";
 
 // 注册测试用户
 void register_test_user() {
   coro_http_client client{};
-  std::string url{"http://127.0.0.1:3389/api/v1/register"};
   register_info info;
 
   // 生成唯一的用户名和邮箱
@@ -40,7 +43,7 @@ void register_test_user() {
   string_stream ss;
   to_json(info, ss);
 
-  auto resp = client.post(url, ss.c_str(), req_content_type::json);
+  auto resp = client.post(register_url, ss.c_str(), req_content_type::json);
   std::cout << "Register response: " << resp.resp_body << std::endl;
 
   // 验证注册成功
@@ -54,7 +57,6 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with correct username and password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_username;
@@ -63,7 +65,7 @@ TEST_CASE("User Login API Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with username response: " << resp.resp_body
               << std::endl;
 
@@ -78,7 +80,6 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with correct email and password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_email;  // 使用邮箱作为用户名
@@ -87,7 +88,7 @@ TEST_CASE("User Login API Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with email response: " << resp.resp_body << std::endl;
 
     // 验证响应中包含成功标志
@@ -98,7 +99,6 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with incorrect password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_username;
@@ -107,7 +107,7 @@ TEST_CASE("User Login API Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with wrong password response: " << resp.resp_body
               << std::endl;
 
@@ -121,7 +121,6 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with non-existent username") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = "nonexistent_user_123456";
@@ -130,7 +129,7 @@ TEST_CASE("User Login API Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with non-existent username response: " << resp.resp_body
               << std::endl;
 
@@ -144,7 +143,6 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with non-existent email") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = "nonexistent_email_123456@example.com";
@@ -153,7 +151,7 @@ TEST_CASE("User Login API Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with non-existent email response: " << resp.resp_body
               << std::endl;
 
@@ -167,10 +165,9 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with empty request body") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
 
     // 发送空的请求体
-    auto resp = client.post(url, "", req_content_type::json);
+    auto resp = client.post(login_url, "", req_content_type::json);
     std::cout << "Login with empty body response: " << resp.resp_body
               << std::endl;
 
@@ -182,12 +179,11 @@ TEST_CASE("User Login API Tests") {
 
   SUBCASE("Login with invalid JSON format") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
 
     // 发送格式错误的JSON
     std::string invalid_json =
         "{\"username\":\"testuser\",\"password\":\"password123\"";
-    auto resp = client.post(url, invalid_json, req_content_type::json);
+    auto resp = client.post(login_url, invalid_json, req_content_type::json);
     std::cout << "Login with invalid JSON response: " << resp.resp_body
               << std::endl;
 
@@ -205,10 +201,8 @@ TEST_CASE("User Login API Comprehensive Tests") {
   register_test_user();
 
   // 运行所有登录相关测试
-
   SUBCASE("Login with correct username and password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_username;
@@ -217,7 +211,7 @@ TEST_CASE("User Login API Comprehensive Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with username response: " << resp.resp_body
               << std::endl;
 
@@ -232,7 +226,6 @@ TEST_CASE("User Login API Comprehensive Tests") {
 
   SUBCASE("Login with correct email and password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_email;
@@ -241,7 +234,7 @@ TEST_CASE("User Login API Comprehensive Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with email response: " << resp.resp_body << std::endl;
 
     // 验证响应中包含成功标志
@@ -252,7 +245,6 @@ TEST_CASE("User Login API Comprehensive Tests") {
 
   SUBCASE("Login with incorrect password") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = g_username;
@@ -261,7 +253,7 @@ TEST_CASE("User Login API Comprehensive Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with wrong password response: " << resp.resp_body
               << std::endl;
 
@@ -275,7 +267,6 @@ TEST_CASE("User Login API Comprehensive Tests") {
 
   SUBCASE("Login with non-existent username") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/login"};
     login_info info;
 
     info.username = "nonexistent_user_123456";
@@ -284,7 +275,7 @@ TEST_CASE("User Login API Comprehensive Tests") {
     string_stream ss;
     to_json(info, ss);
 
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(login_url, ss.c_str(), req_content_type::json);
     std::cout << "Login with non-existent username response: " << resp.resp_body
               << std::endl;
 
@@ -409,7 +400,6 @@ TEST_CASE("User Reset Password Tests") {
   // 测试请求重置密码
   SUBCASE("Request password reset") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/forgot_password"};
     forgot_password_info info;
     
     info.email = g_email;
@@ -417,7 +407,7 @@ TEST_CASE("User Reset Password Tests") {
     string_stream ss;
     to_json(info, ss);
     
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(forget_password_url, ss.c_str(), req_content_type::json);
     std::cout << "Forgot password response: " << resp.resp_body << std::endl;
     
     // 验证响应（不区分邮箱是否存在）
@@ -433,7 +423,6 @@ TEST_CASE("User Reset Password Tests") {
   
   SUBCASE("Reset password with invalid token") {
     coro_http_client client{};
-    std::string url{"http://127.0.0.1:3389/api/v1/reset_password"};
     reset_password_info info;
     
     info.token = "invalid_token_12345";
@@ -442,7 +431,7 @@ TEST_CASE("User Reset Password Tests") {
     string_stream ss;
     to_json(info, ss);
     
-    auto resp = client.post(url, ss.c_str(), req_content_type::json);
+    auto resp = client.post(reset_password_url, ss.c_str(), req_content_type::json);
     std::cout << "Reset password with invalid token response: " << resp.resp_body << std::endl;
     
     // 验证响应
