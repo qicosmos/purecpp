@@ -96,7 +96,7 @@ struct password_reset_tokens_t {
   std::array<char, 129> token;
   uint64_t created_at;
   uint64_t expires_at;
-}
+};
 // 注册password_reset_tokens_t的主键
 REGISTER_AUTO_KEY(password_reset_tokens_t, id);
 
@@ -160,7 +160,4 @@ template <typename T> struct rest_response {
   std::string timestamp;
   int code = 200;
 };
-
-
-}  // namespace purecpp
-
+} // namespace purecpp

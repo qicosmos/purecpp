@@ -65,19 +65,22 @@ class user_login_t {
       // 检查锁定时间是否已过
       if (current_time - user.last_failed_login < LOCK_DURATION) {
         // 用户仍处于锁定状态
-        uint64_t remaining_time = LOCK_DURATION - (current_time - user.last_failed_login);
+        uint64_t remaining_time =
+            LOCK_DURATION - (current_time - user.last_failed_login);
         uint64_t remaining_minutes = remaining_time / (60 * 1000);
         uint64_t remaining_seconds = (remaining_time % (60 * 1000)) / 1000;
-        
-        std::string message = "登录失败次数过多，账号已被锁定。请在" + std::to_string(remaining_minutes) + "分钟" + 
-                             std::to_string(remaining_seconds) + "秒后重试。";
-        
+
+        std::string message = "登录失败次数过多，账号已被锁定。请在" +
+                              std::to_string(remaining_minutes) + "分钟" +
+                              std::to_string(remaining_seconds) + "秒后重试。";
+
         rest_response<std::string> data{false, message};
         std::string json;
         iguana::to_json(data, json);
         resp.set_status_and_content(status_type::bad_request, std::move(json));
         return;
-      } else {
+      }
+      else {
         // 锁定时间已过，重置失败次数
         user.login_attempts = 0;
       }
@@ -88,10 +91,10 @@ class user_login_t {
       // 密码错误，更新失败次数和最后失败时间
       user.login_attempts++;
       user.last_failed_login = current_time;
-      
+
       // 保存更新到数据库
       conn->update<users_t>(user, "id=" + std::to_string(user.id));
-      
+
       // 检查是否需要锁定账号
       if (user.login_attempts >= MAX_LOGIN_ATTEMPTS) {
         std::string message = "登录失败次数过多，账号已被锁定10分钟。";
@@ -101,7 +104,7 @@ class user_login_t {
         resp.set_status_and_content(status_type::bad_request, std::move(json));
         return;
       }
-      
+
       // 返回登录失败信息
       rest_response<std::string_view> data{
           false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
@@ -110,7 +113,7 @@ class user_login_t {
       resp.set_status_and_content(status_type::bad_request, std::move(json));
       return;
     }
-    
+
     // 登录成功，重置失败次数
     user.login_attempts = 0;
 

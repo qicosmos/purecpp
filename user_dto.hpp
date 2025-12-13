@@ -8,17 +8,6 @@
 #include "entity.hpp" // 包含必要的枚举类型
 
 namespace purecpp {
-// 通用响应包装器
-    template <typename T>
-    struct rest_response {
-        bool success = true;
-        std::string message;
-        std::optional<std::vector<std::string>> errors;
-        std::optional<T> data;
-        std::string timestamp;
-        int code = 200;
-    };
-
     // 注册相关结构体
     struct register_info {
         std::string username;

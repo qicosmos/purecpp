@@ -66,7 +66,7 @@ int create_tcp_socket(const std::string& host, int port) {
 }
 
 // 发送SMTP命令并接收响应
-  std::string send_smtp_command(int sockfd, ::SSL* ssl, const std::string& cmd,
+std::string send_smtp_command(int sockfd, ::SSL* ssl, const std::string& cmd,
                               bool use_ssl) {
   std::string send_cmd = cmd + "\r\n";
   ssize_t bytes_sent;
@@ -220,12 +220,12 @@ bool send_email(const std::string& smtp_host, int smtp_port,
                                 "\r\n"
                                 "Subject: " +
                                 subject;
-    
+
     // 添加HTML内容类型头部
     if (is_html) {
       email_content += "\r\nContent-Type: text/html; charset=utf-8";
     }
-    
+
     email_content += "\r\n\r\n" + body + "\r\n.";
     response = send_smtp_command(sockfd, ssl, email_content, use_ssl);
     if (response[0] != '2')
