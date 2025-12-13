@@ -82,13 +82,13 @@ TEST_CASE("Send Reset Email Tests") {
   smtp::email_server svr_conf{
       "smtp.qq.com",      // smtp 邮箱服务器地址
       "465",               // smtp 邮箱服务器端口
-      "raohj1987@qq.com",  // 你的邮箱用户名
-      "yeeubaecvdcbfihe"   // 邮箱授权码，不是密码，需要登录邮箱去设置
+      "xxxxxx@qq.com",  // 你的邮箱用户名
+      "xxxxxxxxxxxxxxxx"   // 邮箱授权码，不是密码，需要登录邮箱去设置
   };
 
   smtp::email_data data{
-      "raohj1987@qq.com",     // 发件人邮箱
-      {"raohj1987@163.com"},  // 收件人邮箱列表
+      "xxxxxx@qq.com",     // 发件人邮箱
+      {"xxxxxx@163.com"},  // 收件人邮箱列表
       "test",                 // 邮件标题
       "it is a text"          // 邮件正文
   };
