@@ -1,0 +1,26 @@
+#pragma once
+
+#include "common.hpp"
+#include <vector>
+
+using namespace cinatra;
+
+namespace purecpp {
+class tags {
+public:
+  void get_tags(coro_http_request &req, coro_http_response &resp) {
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+    std::vector<tags_t> vec = conn->query_s<tags_t>();
+
+    std::string json;
+    iguana::to_json(vec, json);
+
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+};
+} // namespace purecpp

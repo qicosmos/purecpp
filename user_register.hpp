@@ -1,20 +1,12 @@
 #pragma once
 
-#include "entity.hpp"
+#include "common.hpp"
 #include "user_aspects.hpp"
 #include <openssl/sha.h>
 
 using namespace cinatra;
 
 namespace purecpp {
-inline uint64_t get_timestamp_milliseconds() {
-  auto now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto milliseconds =
-      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  return static_cast<uint64_t>(milliseconds.count());
-}
-
 inline std::string sha256_simple(std::string_view input) {
   unsigned char hash[SHA256_DIGEST_LENGTH];
   SHA256(reinterpret_cast<const unsigned char *>(input.data()), input.size(),
@@ -43,9 +35,8 @@ public:
     register_info info = std::any_cast<register_info>(req.get_user_data());
 
     // save to database
-    auto &db_pool = connection_pool<dbng<mysql>>::instance();
-    auto conn = db_pool.get();
     users_t user{.id = 0,
+                 .status = "Offline",
                  .is_verifyed = false,
                  .created_at = get_timestamp_milliseconds(),
                  .last_active_at = 0};
@@ -54,7 +45,15 @@ public:
     std::copy(info.username.begin(), info.username.end(),
               user.user_name.begin());
     std::copy(info.email.begin(), info.email.end(), user.email.begin());
+
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
     uint64_t id = conn->get_insert_id_after_insert(user);
+
     if (id == 0) {
       auto err = conn->get_last_error();
       std::cout << err << "\n";
@@ -62,15 +61,9 @@ public:
       return;
     }
 
-    rest_response<user_resp_data> data{};
-    data.success = true;
-    data.message = "注册成功";
-    data.data =
-        user_resp_data{id, info.username, info.email, bool(user.is_verifyed)};
-
-    std::string json;
-    iguana::to_json(data, json);
-
+    std::string json = make_data(
+        user_resp_data{id, info.username, info.email, bool(user.is_verifyed)},
+        "注册成功");
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };

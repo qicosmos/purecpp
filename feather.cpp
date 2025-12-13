@@ -9,7 +9,9 @@
 #include <random>
 #include <vector>
 
+#include "articles.hpp"
 #include "entity.hpp"
+#include "tags.hpp"
 #include "user_register.hpp"
 
 using namespace cinatra;
@@ -75,11 +77,21 @@ bool init_db() {
   }
 
   auto conn = pool.get();
-  conn->execute("drop table if exists users");
   conn->create_datatable<users_t>(
       ormpp_auto_key{"id"}, ormpp_unique{{"user_name"}},
       ormpp_unique{{"email"}},
       ormpp_not_null{{"user_name", "email", "pwd_hash"}});
+
+  conn->create_datatable<tags_t>(ormpp_auto_key{"tag_id"},
+                                 ormpp_unique{{"name"}});
+  // std::vector<tags_t> tags{{0, "开源项目"}, {0, "社区活动"}, {0, "元编程"},
+  //                          {0, "代码精粹"}, {0, "技术探讨"}, {0, "语言特性"},
+  //                          {0, "程序人生"}, {0, "并发编程"}, {0,
+  //                          "开发心得"}};
+  // conn->insert(tags);
+  conn->create_datatable<article_comments>(ormpp_auto_key{"comment_id"});
+  conn->create_datatable<articles_t>(ormpp_auto_key{"article_id"},
+                                     ormpp_unique{{"slug"}});
 
   return true;
 }
@@ -133,5 +145,18 @@ int main() {
       "/api/v1/register", &user_register_t::handle_register, usr_reg,
       check_register_input{}, check_cpp_answer{}, check_user_name{},
       check_email{}, check_password{});
+
+  tags tag{};
+  server.set_http_handler<GET>("/api/v1/get_tags", &tags::get_tags, tag);
+
+  articles article{};
+  server.set_http_handler<POST>("/api/v1/new_article",
+                                &articles::handle_new_article, article);
+  server.set_http_handler<GET>("/api/v1/get_articles", &articles::get_articles,
+                               article);
+  server.set_http_handler<GET>("/api/v1/get_article_count",
+                               &articles::get_article_count, article);
+  server.set_http_handler<GET>("/api/v1/article/:slug", &articles::show_article,
+                               article);
   server.sync_start();
 }
