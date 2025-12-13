@@ -8,7 +8,9 @@
 #include <random>
 #include <vector>
 
+#include "articles.hpp"
 #include "entity.hpp"
+#include "tags.hpp"
 #include "user_login.hpp"
 #include "user_password.hpp"
 #include "user_profile.hpp"
@@ -77,55 +79,22 @@ bool init_db() {
   }
 
   auto conn = pool.get();
-  // 尝试创建表，如果表已经存在，ormpp可能会返回false或者抛出异常
-  try {
-    bool created = conn->create_datatable<users_t>(
-        ormpp_auto_key{"id"}, ormpp_unique{{"user_name"}},
-        ormpp_unique{{"email"}},
-        ormpp_not_null{{"user_name", "email", "pwd_hash"}});
-    if (created) {
-      std::cout << "Table 'users' created successfully." << std::endl;
-    }
-    else {
-      std::cout << "Table 'users' created error." << std::endl;
-    }
-  } catch (const std::exception& e) {
-    // 检查异常是否是因为表已经存在
-    std::string error_msg = e.what();
-    if (error_msg.find("already exists") != std::string::npos ||
-        error_msg.find("Duplicate entry") != std::string::npos) {
-      std::cout << "Table 'users' already exists." << std::endl;
-    }
-    else {
-      std::cout << "Error creating table: " << e.what() << std::endl;
-      return false;
-    }
-  }
+  conn->execute("drop table if exists users");
+  conn->create_datatable<users_t>(
+      ormpp_auto_key{"id"}, ormpp_unique{{"user_name"}},
+      ormpp_unique{{"email"}},
+      ormpp_not_null{{"user_name", "email", "pwd_hash"}});
 
-  // 创建密码重置token表
-  try {
-    bool created = conn->create_datatable<password_reset_tokens_t>(
-        ormpp_auto_key{"id"}, ormpp_unique{{"token"}},
-        ormpp_not_null{{"user_id", "token", "created_at", "expires_at"}});
-    if (created) {
-      std::cout << "Table 'password_reset_tokens' created successfully."
-                << std::endl;
-    }
-    else {
-      std::cout << "Table 'password_reset_tokens' create error." << std::endl;
-    }
-  } catch (const std::exception& e) {
-    // 检查异常是否是因为表已经存在
-    std::string error_msg = e.what();
-    if (error_msg.find("already exists") != std::string::npos ||
-        error_msg.find("Duplicate entry") != std::string::npos) {
-      std::cout << "Table 'password_reset_tokens' already exists." << std::endl;
-    }
-    else {
-      std::cout << "Error creating table: " << e.what() << std::endl;
-      return false;
-    }
-  }
+  conn->create_datatable<tags_t>(ormpp_auto_key{"tag_id"},
+                                 ormpp_unique{{"name"}});
+  // std::vector<tags_t> tags{{0, "开源项目"}, {0, "社区活动"}, {0, "元编程"},
+  //                          {0, "代码精粹"}, {0, "技术探讨"}, {0, "语言特性"},
+  //                          {0, "程序人生"}, {0, "并发编程"}, {0,
+  //                          "开发心得"}};
+  // conn->insert(tags);
+  conn->create_datatable<article_comments>(ormpp_auto_key{"comment_id"});
+  conn->create_datatable<articles_t>(ormpp_auto_key{"article_id"},
+                                     ormpp_unique{{"slug"}});
 
   return true;
 }
@@ -178,40 +147,7 @@ int main() {
   user_register_t usr_reg{};
   server.set_http_handler<POST>(
       "/api/v1/register", &user_register_t::handle_register, usr_reg,
-      log_request_response{}, check_register_input{}, check_cpp_answer{},
-      check_user_name{}, check_email{}, check_password{});
-
-  user_login_t usr_login{};
-  server.set_http_handler<POST>("/api/v1/login", &user_login_t::handle_login,
-                                usr_login, log_request_response{},
-                                check_login_input{});
-
-  // 添加退出登录路由
-  server.set_http_handler<POST, GET>("/api/v1/logout",
-                                     &user_login_t::handle_logout, usr_login,
-                                     log_request_response{});
-
-  user_password_t usr_password{};
-  server.set_http_handler<POST>(
-      "/api/v1/change_password", &user_password_t::handle_change_password,
-      usr_password, log_request_response{}, check_change_password_input{},
-      check_new_password{});
-
-  // 添加忘记密码和重置密码的路由
-  server.set_http_handler<POST>(
-      "/api/v1/forgot_password", &user_password_t::handle_forgot_password,
-      usr_password, log_request_response{}, check_forgot_password_input{});
-
-  server.set_http_handler<POST>(
-      "/api/v1/reset_password", &user_password_t::handle_reset_password,
-      usr_password, log_request_response{}, check_reset_password_input{},
-      check_reset_password{});
-
-  // 添加个人资料查看路由
-  user_profile_t usr_profile{};
-  server.set_http_handler<GET>("/api/v1/profile",
-                               &user_profile_t::handle_get_profile, usr_profile,
-                               log_request_response{});
-
+      check_register_input{}, check_cpp_answer{}, check_user_name{},
+      check_email{}, check_password{});
   server.sync_start();
 }

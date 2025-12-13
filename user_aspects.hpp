@@ -1,4 +1,5 @@
 #pragma once
+#include "common.hpp"
 #include <any>
 #include <chrono>
 #include <cinatra.hpp>
@@ -97,7 +98,39 @@ struct check_cpp_answer {
     return true;
   }
 };
+std::string cleanup_markdown(const std::string &markdown_text) {
+  std::string text = markdown_text;
 
+  // 1. 清理链接和图片 (保留链接文本)
+  // 匹配 [text](url) 或 ![text](url)
+  text = std::regex_replace(text, std::regex("!\\[(.*?)\\]\\(.*?\\)"),
+                            "$1"); // 图片
+  text = std::regex_replace(text, std::regex("\\[(.*?)\\]\\(.*?\\)"),
+                            "$1"); // 链接
+
+  // 2. 清理粗体和斜体 (**bold** or *italic*)
+  // 匹配 **...** 和 *...*
+  text = std::regex_replace(text, std::regex("(\\*\\*|__)(.*?)\\1"), "$2");
+  text = std::regex_replace(text, std::regex("(\\*|_)(.*?)\\1"), "$2");
+
+  // 3. 清理代码块和行内代码 (```code``` or `code`)
+  text = std::regex_replace(text, std::regex("```[\\s\\S]*?```"),
+                            ""); // 移除代码块
+  text = std::regex_replace(text, std::regex("`(.*?)`"), "$1"); // 行内代码
+
+  // 4. 清理标题 (# H1, ## H2, etc.)
+  text = std::regex_replace(text, std::regex("^#+\\s*"), "");
+
+  // 5. 清理列表和引用 (> quote)
+  text = std::regex_replace(text, std::regex("^[*-+]\\s"), ""); // 列表
+  text = std::regex_replace(text, std::regex("^>\\s"), "");     // 引用
+
+  // 6. 最终清理多余的换行和空格
+  // 替换多个换行符为一个空格（将段落连起来）
+  text = std::regex_replace(text, std::regex("\\n+"), " ");
+
+  return text;
+}
 struct check_user_name {
   bool before(coro_http_request &req, coro_http_response &res) {
     register_info info = std::any_cast<register_info>(req.get_user_data());

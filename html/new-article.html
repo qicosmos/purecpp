@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建新文章 - Purecpp.cn 现代C++社区</title>
+
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <script defer src="script/alpine.js"></script>
+
+    <link rel="stylesheet" href="css/simplemde.min.css">
+    <link rel="stylesheet" href="css/atom-one-dark.min.css">
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --muted-color: #6b7280;
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #333;
+            --text-highlight: var(--primary);
+        }
+
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #121212;
+                --bg-card: #1e1e1e;
+                --text-main: #f3f4f6;
+                --text-highlight: #818cf8;
+                --border-color: #374151;
+            }
+        }
+
+        body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            max-width: 1200px;
+            width: 100%;
+            padding: 1rem 2rem;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .logo strong {
+            font-size: 18px !important;
+            color: var(--primary) !important;
+        }
+
+        /* 表单容器 */
+        .article-editor-container {
+            max-width: 1200px;
+            margin: 0.2rem auto;
+            padding: 1rem;
+        }
+
+        .editor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        /* 标题样式 */
+        .editor-card h2 {
+            color: var(--text-highlight);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
+            font-size: 1.8rem;
+        }
+
+        /* 调整文章标题输入框的高度 */
+        #article-title {
+            /* 核心覆盖：设置一个较小的固定高度，例如 40px */
+            /* 建议先尝试 40px，如果还是高，可以降到 36px */
+            height: 46px !important;
+
+            /* 强制重置垂直内边距，让 height 属性生效 */
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+
+            /* 调整行高，确保文本在 40px 的高度内垂直居中 */
+            line-height: 40px !important;
+
+            /* 可选：调整文字与左右边框的距离 */
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
+        }
+
+        /* Markdown 编辑器区域 */
+        #markdown-content {
+            min-height: 600px;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        /* 摘要区域 */
+        #article-excerpt {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 针对 grid 容器内的子元素调整宽度，并确保靠左对齐 */
+        .article-editor-container .grid {
+            /* 核心修改：强制移除 Grid 布局的垂直间距 */
+            row-gap: 0px !important;
+
+            /* 确保其他间距也为 0 */
+            gap: 0px !important;
+        }
+
+        /* 让选择标签的 select 元素和按钮组的 div 只占据内容所需的宽度 */
+        .article-editor-container .grid select,
+        .article-editor-container .grid .control-group {
+            /* 强制宽度为自动，防止它们被 grid 布局拉伸到 100% */
+            width: auto !important;
+
+            /* 确保它们靠左对齐 */
+            margin-right: auto;
+        }
+
+        #tag-select {
+            /* 强制重置垂直内边距，让 height 属性生效 */
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            /* 强制设置一个较低的固定高度，例如 40px */
+            height: 40px !important;
+
+            /* 调整行高，确保文本在 40px 的高度内垂直居中 */
+            line-height: 40px !important;
+
+            /* 如果 40px 仍然太大，可以尝试 36px 或 32px */
+        }
+
+        /* 下拉框和按钮组 */
+        .control-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-group button {
+            /* 1. 强制文字不换行 */
+            white-space: nowrap !important;
+
+            /* 2. 移除默认的宽度约束（如果有的话） */
+            width: auto !important;
+
+            /* 3. 恢复或确保适当的内边距，以容纳单行文本 */
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 0.5rem;
+            /* 使用你希望的较小值 */
+            padding-bottom: 0.5rem;
+            /* 使用你希望的较小值 */
+
+            /* 确保覆盖了 Pico.css 的默认样式 */
+            display: inline-block !important;
+        }
+
+        .control-group label,
+        .control-group select {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 头部导航 -->
+    <header class="page-header" id="header-container">
+        <!-- 默认导航，如果加载失败就显示这个 -->
+        <nav class="container-fluid">
+            <ul>
+                <li>
+                    <a href="/" class="secondary">
+                        <img src="logo.png" alt="PureCpp Logo">
+                        <strong>PureCpp</strong>
+                    </a>
+                </li>
+            </ul>
+            <ul>
+                <li><a href="login.html">登录</a></li>
+                <li><a href="register.html">注册</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-editor-container">
+        <article class="editor-card" x-data="articleEditorComponent()">
+            <h2><i class="fas fa-pen-nib"></i> 撰写新文章</h2>
+
+            <form action="/api/v1/new_article" method="POST" accept-charset="UTF-8" @submit="handleSubmit">
+                <label for="article-title">文章标题</label>
+                <input type="text" id="article-title" name="title" x-model="title" placeholder="请输入文章标题" required
+                    maxlength="100">
+
+                <label for="article-excerpt">文章摘要 (Excerpt)</label>
+                <textarea id="article-excerpt" name="excerpt" x-model="excerpt" rows="3"
+                    placeholder="请输入文章摘要，用于列表页展示 (建议100-200字)" maxlength="500"></textarea>
+
+                <label for="markdown-content">文章内容 (Markdown 格式)</label>
+                <textarea id="markdown-editor" name="content" x-model="content"
+                    placeholder="在这里使用 Markdown 格式撰写您的文章正文..."></textarea>
+
+                <div class="grid">
+                    <!-- <label for="tag-select">选择标签</label> -->
+                    <select id="tag-select" name="tag_id" required x-model="selectedTagId">
+                        <option value="" disabled selected>请选择文章标签</option>
+                        <template x-for="tag in tags" :key="tag.tag_id">
+                            <option :value="tag.tag_id" x-text="tag.name"></option>
+                        </template>
+                    </select>
+
+                    <div class="control-group">
+                        <button type="button" class="secondary" onclick="saveAsDraft()"><i class="fas fa-save"></i>
+                            保存草稿</button>
+                        <button type="submit" class="primary"><i class="fas fa-upload"></i> 提交文章 (待审核)</button>
+                    </div>
+                </div>
+
+                <small
+                    style="color: var(--muted-color); margin-top: 1rem; display: block;">提交后文章将进入审核流程，审核通过后才会正式发布。</small>
+            </form>
+        </article>
+    </main>
+
+    <script src="script/simplemde.min.js"></script>
+
+    <script src="script/highlight.min.js"></script>
+    <script src="script/cpp.min.js"></script>
+
+    <script src="script/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const container = document.getElementById('header-container');
+            if (!container) {
+                console.error('找不到 header-container 元素');
+                return;
+            }
+
+            const response = await fetch('header.html');
+            if (!response.ok) {
+                console.log('Header 加载失败');
+                return;
+            }
+            const html = await response.text();
+            container.innerHTML = html;
+            console.log('Header 加载成功');
+
+            // --- 1. 配置 marked.js 以使用 Highlight.js ---
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                sanitize: false,
+
+                // 核心：自定义代码块渲染函数
+                highlight: function (code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                }
+            });
+        });
+
+        function articleEditorComponent() {
+            return {
+                simplemde: null,
+                title: '',
+                excerpt: '',
+                content: '',
+                tags: [],
+                selectedTagId: '', // 用于双向绑定当前选中的值
+                isLoading: false,
+                errorMessage: '',
+
+                init() {
+                    this.initializeSimpleMDE();
+                    this.fetchTags();
+                },
+
+                async fetchTags() {
+                    this.isLoading = true;
+                    this.errorMessage = '';
+                    try {
+                        const response = await fetch('/api/v1/get_tags');
+
+                        if (!response.ok) {
+                            throw new Error('网络请求失败');
+                        }
+
+                        this.tags = await response.json();
+                        // this.isLoading = false;
+
+                    } catch (error) {
+                        console.error('获取标签失败:', error);
+                        this.errorMessage = '无法加载标签数据，请稍后重试。';
+                        this.isLoading = false;
+                    }
+                },
+
+                initializeSimpleMDE() {
+                    // --- 实例化 SimpleMDE ---
+                    this.simplemde = new SimpleMDE({
+                        element: document.getElementById("markdown-editor"),
+                        spellChecker: false,
+
+                        // 覆盖默认的预览渲染函数
+                        previewRender: function (plainText, preview) {
+                            return marked.parse(plainText);
+                        },
+                    });
+
+                    // 监听编辑器的 change 事件，同步数据到 Alpine 的 content 变量
+                    this.simplemde.codemirror.on("change", () => {
+                        this.content = this.simplemde.value();
+                    });
+                },
+
+                async handleSubmit(event) {
+                    event.preventDefault(); // 阻止原生提交
+
+                    if (!this.selectedTagId) {
+                        alert('请选择文章标签');
+                        return;
+                    }
+
+                    const content = this.simplemde.value()
+
+                    if (!content || content.trim() === '') {
+                        alert('文章内容不能为空！');
+                        // event.preventDefault() 应该已经被 @submit.prevent 包含，确保阻止表单提交
+                        return;
+                    }
+
+                    const tagId = parseInt(this.selectedTagId, 10);
+                    const payload = {
+                        title: this.title,
+                        excerpt: this.excerpt,
+                        content: this.content,
+                        tag_id: tagId
+                    };
+
+                    try {
+                        const response = await fetch('/api/v1/new_article', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            alert('文章提交成功！请等待审核。');
+                            // 可选：跳转
+                            window.location.href = '/articles.html';
+                        } else {
+                            const errorText = await response.text();
+                            throw new Error(`提交失败: ${response.status} ${errorText}`);
+                        }
+                    } catch (error) {
+                        console.error('Submit error:', error);
+                        this.errorMessage = '提交失败：' + error.message;
+                        alert(this.errorMessage);
+                    }
+                }
+            }
+        }
+
+        function saveAsDraft() {
+            // 在这里实现将表单数据通过 AJAX/Fetch 发送到后端保存草稿的逻辑
+            alert("文章已保存为草稿！");
+            console.log("Saving draft...");
+        }
+    </script>
+</body>
+
+</html>
