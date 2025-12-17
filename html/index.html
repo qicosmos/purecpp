@@ -783,6 +783,19 @@
         body {
             background-color: var(--bg-page) !important;
             color: var(--text-main) !important;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
         }
 
         /* 注册按钮微调 */
@@ -812,32 +825,7 @@
     <!-- 外层包裹器：统一留空白，所有内部模块满宽 -->
     <div class="page-wrapper">
         <!-- 导航栏 -->
-        <nav class="container-fluid">
-            <ul>
-                <li>
-                    <a href="/" class="secondary">
-                        <img src="logo.png" alt="PureCpp Logo">
-                        <strong>PureCpp</strong>
-                    </a>
-                </li>
-            </ul>
-            <ul class="mobile-toggle">
-                <li>
-                    <a href="javascript:void(0);" class="secondary" onclick="toggleMenu()">
-                        <i class="fas fa-bars"></i>
-                    </a>
-                </li>
-            </ul>
-            <ul id="nav-menu" class="nav-links">
-                <li><a href="/articles.html">技术文章</a></li>
-                <li><a href="#qa">问答</a></li>
-                <li><a href="#chat">聊天室</a></li>
-                <li><a href="#review">Code Review</a></li>
-                <li><a href="#conference">Purecpp大会</a></li>
-                <li><a href="login.html">登录</a></li>
-                <li><a href="register.html" role="button" class="contrast btn-register">注册</a></li>
-            </ul>
-        </nav>
+        <div id="header-container"></div>
 
         <!-- 公告栏 -->
         <article class="announcement">
@@ -986,102 +974,19 @@
         </main>
     </div>
 
-    <!-- 页脚 -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-grid">
-                <!-- 左列：版权信息 -->
-                <div style="text-align: center;">
-                    <p>© 2025 PureCpp.cn 京ICP备 2025xxxx号</p>
-                </div>
-
-                <!-- 中列：导航链接 + 主题按钮 -->
-                <div>
-                    <ul>
-                        <li><a href="/about">关于我们</a></li>
-                        <li><a href="/rules">社区守则</a></li>
-                        <li><a href="/contact">联系我们</a></li>
-                        <li><a href="/links">友情链接</a></li>
-                        <!-- 主题切换按钮 -->
-                        <li class="theme-toggle">
-                            <span>主题切换</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="themeToggleBtn">
-                                <span class="toggle-slider">
-                                    <span></span>
-                                    <i class="fas fa-sun"></i>
-                                    <i class="fas fa-moon"></i>
-                                </span>
-                            </label>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- 右列：微信公众号 + GitHub -->
-                <div style="display: flex; align-items: center; gap: 1.5rem;">
-                    <a href="#" title="微信公众号" class="wechat-link">
-                        <i class="fab fa-weixin"></i>
-                    </a>
-                    <a href="#" title="GitHub">
-                        <i class="fab fa-github"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- 统一页脚占位符 -->
+    <div id="footer-container"></div>
 
     <!-- 核心脚本 -->
     <script>
-        // 1. 搜索功能
+        // 搜索功能
         function performSearch() {
             const input = document.querySelector('.search-box input');
             const keyword = input.value.trim();
             keyword ? alert(`搜索关键词：${keyword}（实际项目中替换为搜索接口）`) : alert('请输入搜索关键词');
         }
-
-        // 2. 主题切换逻辑（精简后）
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const THEME_STORAGE_KEY = 'purecpp_theme';
-        const htmlRoot = document.documentElement;
-
-        // 初始化主题
-        function initTheme() {
-            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-            const isDarkMode = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            themeToggleBtn.checked = isDarkMode;
-            htmlRoot.classList.add('manual-theme');
-            htmlRoot.classList.toggle('dark', isDarkMode);
-            htmlRoot.classList.toggle('light', !isDarkMode);
-        }
-
-        // 切换主题
-        function toggleTheme() {
-            const isDarkMode = themeToggleBtn.checked;
-            htmlRoot.classList.toggle('dark', isDarkMode);
-            htmlRoot.classList.toggle('light', !isDarkMode);
-            localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
-        }
-
-        // 初始化 + 绑定事件
-        initTheme();
-        themeToggleBtn.addEventListener('change', toggleTheme);
-
-        // 移动端菜单切换逻辑
-        function toggleMenu() {
-            const navMenu = document.getElementById('nav-menu');
-            navMenu.classList.toggle('active');
-
-            // 切换图标（可选：变成关闭图标 X）
-            const icon = document.querySelector('.mobile-toggle i');
-            if (navMenu.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        }
     </script>
+    <script src="script/layout.js"></script>
 </body>
 
 </html>

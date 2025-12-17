@@ -1,0 +1,160 @@
+<!-- footer.html -->
+<style>
+    /* 页脚相关样式 */
+    footer {
+        background-color: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        padding: 2rem 0;
+        margin-top: 2rem;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .footer-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .footer-links ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links ul li {
+        font-size: 0.85rem;
+    }
+
+    .footer-links a {
+        color: var(--text-main);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+        color: var(--primary);
+    }
+
+    .wechat-link {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 0 4px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked+.toggle-slider {
+        background-color: var(--primary);
+    }
+
+    input:focus+.toggle-slider {
+        box-shadow: 0 0 1px var(--primary);
+    }
+
+    input:checked+.toggle-slider:before {
+        transform: translateX(20px);
+    }
+
+    .toggle-slider i {
+        font-size: 12px;
+        color: white;
+        opacity: 0.7;
+    }
+</style>
+
+<!-- 页脚内容 -->
+<footer>
+    <div class="footer-content">
+        <div class="footer-links">
+            <!-- 左列：版权信息 -->
+            <div style="text-align: center;">
+                <p>© 2025 PureCpp.cn 京ICP备 2025xxxx号</p>
+            </div>
+
+            <!-- 中列：导航链接 + 主题按钮 -->
+            <ul>
+                <li><a href="/about.html">关于我们</a></li>
+                <li><a href="/rules.html">社区守则</a></li>
+                <li><a href="/contact.html">联系我们</a></li>
+                <li><a href="/links.html">友情链接</a></li>
+                <!-- 主题切换按钮 -->
+                <li class="theme-toggle">
+                    <span>主题切换</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="themeToggleBtn">
+                        <span class="toggle-slider">
+                            <span></span>
+                            <i class="fas fa-sun"></i>
+                            <i class="fas fa-moon"></i>
+                        </span>
+                    </label>
+                </li>
+            </ul>
+
+            <!-- 右列：微信公众号 + GitHub -->
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="#" title="微信公众号" class="wechat-link">
+                    <i class="fab fa-weixin"></i>
+                </a>
+                <a href="#" title="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
