@@ -51,8 +51,7 @@ auto generate_jwt_token(uint64_t user_id, const std::string &username,
   if (token.size() % 3 == 1) {
     result[result.size() - 2] = '=';
     result[result.size() - 1] = '=';
-  }
-  else if (token.size() % 3 == 2) {
+  } else if (token.size() % 3 == 2) {
     result[result.size() - 1] = '=';
   }
 
@@ -121,7 +120,7 @@ struct TokenInfo {
 
 // 令牌黑名单类
 class token_blacklist {
- public:
+public:
   // 获取单例实例
   static token_blacklist &instance() {
     static token_blacklist instance;
@@ -140,7 +139,7 @@ class token_blacklist {
     return blacklist_.find(token) != blacklist_.end();
   }
 
- private:
+private:
   // 私有构造函数
   token_blacklist() = default;
   // 禁用拷贝和赋值
@@ -154,12 +153,12 @@ class token_blacklist {
 };
 
 // Token校验函数
-std::pair<TokenValidationResult, std::optional<TokenInfo>> validate_jwt_token(
-    const std::string &token) {
+std::pair<TokenValidationResult, std::optional<TokenInfo>>
+validate_jwt_token(const std::string &token) {
   // 检查令牌是否在黑名单中
   if (token_blacklist::instance().contains(token)) {
     return {TokenValidationResult::Expired,
-            std::nullopt};  // 使用Expired状态表示已注销
+            std::nullopt}; // 使用Expired状态表示已注销
   }
 
   // Base64解码
@@ -187,7 +186,7 @@ std::pair<TokenValidationResult, std::optional<TokenInfo>> validate_jwt_token(
     uint64_t timestamp = std::stoull(timestamp_str);
 
     // 验证token是否过期（可选，这里设置为24小时有效期）
-    const uint64_t expiration_time = 24 * 60 * 60 * 1000;  // 24小时（毫秒）
+    const uint64_t expiration_time = 24 * 60 * 60 * 1000; // 24小时（毫秒）
     uint64_t current_time = get_jwt_timestamp_milliseconds();
 
     if (current_time - timestamp > expiration_time) {
@@ -207,4 +206,4 @@ std::pair<TokenValidationResult, std::optional<TokenInfo>> validate_jwt_token(
   }
 }
 
-}  // namespace purecpp
+} // namespace purecpp

@@ -255,7 +255,7 @@ struct log_request_response {
     // 输出日志
     std::cout << log_stream.str() << std::flush;
 
-    return true;  // 继续处理请求
+    return true; // 继续处理请求
   }
 
   // 在请求处理后记录响应信息
@@ -263,12 +263,12 @@ struct log_request_response {
     // 获取请求开始时间
     auto user_data = req.get_user_data();
     if (!user_data.has_value()) {
-      return true;  // 如果没有日志数据，直接返回
+      return true; // 如果没有日志数据，直接返回
     }
 
     auto *log_data = std::any_cast<LogData>(&user_data);
     if (!log_data) {
-      return true;  // 如果类型转换失败，直接返回
+      return true; // 如果类型转换失败，直接返回
     }
 
     auto end_time = std::chrono::system_clock::now();
@@ -310,7 +310,7 @@ struct log_request_response {
     // 输出日志
     std::cout << log_stream.str() << std::flush;
 
-    return true;  // 继续处理后续操作
+    return true; // 继续处理后续操作
   }
 };
 } // namespace purecpp

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "entity.hpp"
+#include "error_info.hpp"
 #include "jwt_token.hpp"
 #include "user_aspects.hpp"
-#include "user_register.hpp"
 #include "user_dto.hpp"
-#include "error_info.hpp"
+#include "user_register.hpp"
 
 using namespace cinatra;
 
@@ -14,14 +14,14 @@ namespace purecpp {
 class token_blacklist;
 
 class user_login_t {
- public:
+public:
   /**
    * @brief 处理用户登录请求
    *
    * @param req HTTP请求对象
    * @param resp HTTP响应对象
    */
-  void handle_login(coro_http_request& req, coro_http_response& resp) {
+  void handle_login(coro_http_request &req, coro_http_response &resp) {
     // 移除可能导致崩溃的全局语言环境设置
     login_info info = std::any_cast<login_info>(req.get_user_data());
 
@@ -38,8 +38,7 @@ class user_login_t {
     if (!users_by_name.empty()) {
       user = users_by_name[0];
       found = true;
-    }
-    else {
+    } else {
       // 尝试通过邮箱查找
       auto users_by_email = conn->query_s<users_t>("email = ?", info.username);
       if (!users_by_email.empty()) {
@@ -60,7 +59,7 @@ class user_login_t {
 
     // 检查用户是否被锁定
     const uint32_t MAX_LOGIN_ATTEMPTS = 5;
-    const uint64_t LOCK_DURATION = 10 * 60 * 1000;  // 10分钟，单位毫秒
+    const uint64_t LOCK_DURATION = 10 * 60 * 1000; // 10分钟，单位毫秒
     const uint64_t current_time = get_timestamp_milliseconds();
 
     if (user.login_attempts >= MAX_LOGIN_ATTEMPTS) {
@@ -81,8 +80,7 @@ class user_login_t {
         iguana::to_json(data, json);
         resp.set_status_and_content(status_type::bad_request, std::move(json));
         return;
-      }
-      else {
+      } else {
         // 锁定时间已过，重置失败次数
         user.login_attempts = 0;
       }
@@ -158,12 +156,12 @@ class user_login_t {
    * @param req HTTP请求对象
    * @param resp HTTP响应对象
    */
-  void handle_logout(cinatra::coro_http_request& req,
-                     cinatra::coro_http_response& resp) {
+  void handle_logout(cinatra::coro_http_request &req,
+                     cinatra::coro_http_response &resp) {
     // 从请求头获取令牌
     std::string token;
     auto headers = req.get_headers();
-    for (auto& header : headers) {
+    for (auto &header : headers) {
       if (cinatra::iequal0(header.name, "Authorization")) {
         // 提取Bearer令牌
         std::string_view auth_header = header.value;
@@ -201,4 +199,4 @@ class user_login_t {
     resp.set_status_and_content(cinatra::status_type::ok, std::move(json));
   }
 };
-}  // namespace purecpp
+} // namespace purecpp
