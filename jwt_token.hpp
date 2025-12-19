@@ -1,4 +1,5 @@
 #pragma once
+#include "cinatra/utils.hpp"
 #include <chrono>
 #include <mutex>
 #include <optional>
@@ -25,81 +26,7 @@ auto generate_jwt_token(uint64_t user_id, const std::string &username,
 
   std::string token = std::to_string(user_id) + ":" + username + ":" + email +
                       ":" + std::to_string(get_jwt_timestamp_milliseconds());
-
-  // 简单的base64编码实现
-  static const std::string base64_chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  std::string result;
-  result.reserve(((token.size() + 2) / 3) * 4);
-
-  int i = 0;
-  while (i < token.size()) {
-    uint32_t octet_a = i < token.size() ? static_cast<uint8_t>(token[i++]) : 0;
-    uint32_t octet_b = i < token.size() ? static_cast<uint8_t>(token[i++]) : 0;
-    uint32_t octet_c = i < token.size() ? static_cast<uint8_t>(token[i++]) : 0;
-
-    uint32_t triple = (octet_a << 16) | (octet_b << 8) | octet_c;
-
-    result += base64_chars[(triple >> 18) & 0x3F];
-    result += base64_chars[(triple >> 12) & 0x3F];
-    result += base64_chars[(triple >> 6) & 0x3F];
-    result += base64_chars[triple & 0x3F];
-  }
-
-  // 处理填充
-  if (token.size() % 3 == 1) {
-    result[result.size() - 2] = '=';
-    result[result.size() - 1] = '=';
-  } else if (token.size() % 3 == 2) {
-    result[result.size() - 1] = '=';
-  }
-
-  return result;
-}
-
-// Base64解码函数（辅助函数）
-std::optional<std::string> base64_decode(const std::string &encoded_string) {
-  static const std::string base64_chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  static constexpr uint8_t base64_table[] = {
-      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-      255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 62,  255,
-      255, 255, 63,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  255, 255,
-      255, 0,   255, 255, 255, 0,   1,   2,   3,   4,   5,   6,   7,   8,   9,
-      10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-      25,  255, 255, 255, 255, 255, 255, 26,  27,  28,  29,  30,  31,  32,  33,
-      34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,  48,
-      49,  50,  51,  255, 255, 255, 255, 255};
-
-  std::string decoded;
-  decoded.reserve(encoded_string.size() / 4 * 3);
-
-  int bits_collected = 0;
-  int bits_remaining = 0;
-  uint32_t value = 0;
-
-  for (unsigned char c : encoded_string) {
-    if (c == '=') {
-      break;
-    }
-
-    if (c > 127 || base64_table[c] == 255) {
-      return std::nullopt;
-    }
-
-    value = (value << 6) | base64_table[c];
-    bits_collected += 6;
-    bits_remaining += 6;
-
-    if (bits_remaining >= 8) {
-      bits_remaining -= 8;
-      decoded.push_back((value >> bits_remaining) & 0xFF);
-    }
-  }
-
-  return decoded;
+  return cinatra::base64_encode(token);
 }
 
 // Token校验结果结构体
@@ -111,7 +38,7 @@ enum class TokenValidationResult {
 };
 
 // Token信息结构体
-struct TokenInfo {
+struct token_info {
   uint64_t user_id;
   std::string username;
   std::string email;
@@ -153,7 +80,7 @@ private:
 };
 
 // Token校验函数
-std::pair<TokenValidationResult, std::optional<TokenInfo>>
+std::pair<TokenValidationResult, std::optional<token_info>>
 validate_jwt_token(const std::string &token) {
   // 检查令牌是否在黑名单中
   if (token_blacklist::instance().contains(token)) {
@@ -162,7 +89,7 @@ validate_jwt_token(const std::string &token) {
   }
 
   // Base64解码
-  auto decoded_opt = base64_decode(token);
+  auto decoded_opt = cinatra::base64_decode(token);
   if (!decoded_opt) {
     return {TokenValidationResult::InvalidBase64, std::nullopt};
   }
@@ -193,8 +120,8 @@ validate_jwt_token(const std::string &token) {
       return {TokenValidationResult::Expired, std::nullopt};
     }
 
-    // 构造TokenInfo
-    TokenInfo info;
+    // 构造token_info
+    token_info info;
     info.user_id = user_id;
     info.username = username;
     info.email = email;
