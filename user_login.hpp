@@ -49,11 +49,8 @@ public:
 
     if (!found) {
       // 用户不存在
-      rest_response<std::string_view> data{
-          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
-      std::string json;
-      iguana::to_json(data, json);
-      resp.set_status_and_content(status_type::bad_request, std::move(json));
+      resp.set_status_and_content(status_type::bad_request,
+                                  make_error(PURECPP_ERROR_LOGIN_FAILED));
       return;
     }
 
@@ -74,11 +71,8 @@ public:
         std::string message = "登录失败次数过多，账号已被锁定。请在" +
                               std::to_string(remaining_minutes) + "分钟" +
                               std::to_string(remaining_seconds) + "秒后重试。";
-
-        rest_response<std::string> data{false, message};
-        std::string json;
-        iguana::to_json(data, json);
-        resp.set_status_and_content(status_type::bad_request, std::move(json));
+        resp.set_status_and_content(status_type::bad_request,
+                                    make_error(message));
         return;
       } else {
         // 锁定时间已过，重置失败次数
@@ -93,29 +87,29 @@ public:
       user.last_failed_login = current_time;
 
       // 保存更新到数据库
-      conn->update<users_t>(user, "id=" + std::to_string(user.id));
+      if (conn->update<users_t>(user) != 1) {
+        resp.set_status_and_content(status_type::bad_request,
+                                    make_error(PURECPP_ERROR_LOGIN_FAILED));
+        return;
+      }
 
       // 检查是否需要锁定账号
       if (user.login_attempts >= MAX_LOGIN_ATTEMPTS) {
-        std::string message = "登录失败次数过多，账号已被锁定10分钟。";
-        rest_response<std::string> data{false, message};
-        std::string json;
-        iguana::to_json(data, json);
-        resp.set_status_and_content(status_type::bad_request, std::move(json));
+        resp.set_status_and_content(
+            status_type::bad_request,
+            make_error("登录失败次数过多，账号已被锁定10分钟。"));
         return;
       }
 
       // 返回登录失败信息
-      rest_response<std::string_view> data{
-          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
-      std::string json;
-      iguana::to_json(data, json);
-      resp.set_status_and_content(status_type::bad_request, std::move(json));
+      resp.set_status_and_content(status_type::bad_request,
+                                  make_error(PURECPP_ERROR_LOGIN_FAILED));
       return;
     }
 
     // 登录成功，重置失败次数
     user.login_attempts = 0;
+    user.status = std::string(STATUS_OF_ONLINE);
 
     // 将std::array转换为std::string
     std::string user_name_str(user.user_name.data());
@@ -126,27 +120,18 @@ public:
 
     // 更新最后活跃时间
     user.last_active_at = get_timestamp_milliseconds();
-    if (conn->update<users_t>(user, "id=" + std::to_string(user.id)) != 1) {
-      rest_response<std::string_view> data{
-          false, std::string(PURECPP_ERROR_LOGIN_FAILED)};
-      std::string json;
-      iguana::to_json(data, json);
-      resp.set_status_and_content(status_type::bad_request, std::move(json));
+    if (conn->update<users_t>(user) != 1) {
+      // 更新失败报错
+      resp.set_status_and_content(status_type::bad_request,
+                                  make_error(PURECPP_ERROR_LOGIN_FAILED));
       return;
     }
 
     // 返回登录成功响应
-    login_resp_data login_data{user.id,         user_name_str, email_str,
-                               token,           user.title,    user.role,
-                               user.experience, user.level};
-    rest_response<login_resp_data> data{};
-    data.success = true;
-    data.message = "登录成功";
-    data.data = login_data;
-
-    std::string json;
-    iguana::to_json(data, json);
-
+    std::string json = make_data(
+        login_resp_data{user.id, user_name_str, email_str, token, user.title,
+                        user.role, user.experience, user.level},
+        std::string(PURECPP_LOGIN_SUCCESS));
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 
@@ -182,10 +167,9 @@ public:
 
     // 如果没有令牌，直接返回成功
     if (token.empty()) {
-      rest_response<std::string> data{true, "退出登录成功"};
-      std::string json;
-      iguana::to_json(data, json);
-      resp.set_status_and_content(cinatra::status_type::ok, std::move(json));
+      resp.set_status_and_content(
+          cinatra::status_type::ok,
+          make_data(rest_response<std::string>{true, "退出登录成功"}));
       return;
     }
 
@@ -193,10 +177,9 @@ public:
     token_blacklist::instance().add(token);
 
     // 返回成功响应
-    rest_response<std::string> data{true, "退出登录成功"};
-    std::string json;
-    iguana::to_json(data, json);
-    resp.set_status_and_content(cinatra::status_type::ok, std::move(json));
+    resp.set_status_and_content(
+        cinatra::status_type::ok,
+        make_data(rest_response<std::string>{true, "退出登录成功"}));
   }
 };
 } // namespace purecpp

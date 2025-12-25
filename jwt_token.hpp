@@ -1,5 +1,6 @@
 #pragma once
 #include "cinatra/utils.hpp"
+#include "config.hpp"
 #include <chrono>
 #include <mutex>
 #include <optional>
@@ -113,7 +114,9 @@ validate_jwt_token(const std::string &token) {
     uint64_t timestamp = std::stoull(timestamp_str);
 
     // 验证token是否过期（可选，这里设置为24小时有效期）
-    const uint64_t expiration_time = 24 * 60 * 60 * 1000; // 24小时（毫秒）
+    const uint64_t expiration_time =
+        purecpp_config::get_instance().user_cfg_.token_expiration_minutes * 60 *
+        1000; // 24小时（毫秒）
     uint64_t current_time = get_jwt_timestamp_milliseconds();
 
     if (current_time - timestamp > expiration_time) {

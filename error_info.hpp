@@ -22,6 +22,7 @@ inline constexpr std::string_view PURECPP_ERROR_INTERNAL_SERVER =
     "服务器内部错误";
 
 // 用户相关错误
+inline constexpr std::string_view PURECPP_LOGIN_SUCCESS = "登录成功";
 inline constexpr std::string_view PURECPP_ERROR_USERNAME_LENGTH =
     "用户名长度非法应改为1-20。";
 inline constexpr std::string_view PURECPP_ERROR_USERNAME_CHARACTER =

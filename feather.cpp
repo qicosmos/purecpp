@@ -117,6 +117,9 @@ int main() {
   if (!init_db()) {
     return -1;
   }
+  // 从配置文件加载配置
+  purecpp_config::get_instance().load_config("cfg/user_config.json");
+
   auto &db_pool = connection_pool<dbng<mysql>>::instance();
 
   coro_http_server server(std::thread::hardware_concurrency(), 3389);
