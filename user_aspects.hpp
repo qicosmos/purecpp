@@ -8,6 +8,8 @@
 using namespace cinatra;
 using namespace iguana;
 
+#include "error_info.hpp"
+#include "user_dto.hpp"
 namespace purecpp {
 inline const std::vector<std::string_view> cpp_questions{
     "C++中声明指向int的常量指针, 语法是____ int* "
@@ -21,21 +23,6 @@ inline const std::vector<std::string_view> cpp_questions{
 
 inline const std::vector<std::string_view> cpp_answers{
     "const", "8", "shared_ptr", "unique_ptr", "内存泄漏", "0"};
-
-struct register_info {
-  std::string_view username;
-  std::string_view email;
-  std::string_view password;
-  std::string_view cpp_answer;
-  size_t question_index;
-};
-
-struct user_resp_data {
-  uint64_t user_id;
-  std::string_view username;
-  std::string_view email;
-  bool verification_required;
-};
 
 struct check_register_input {
   bool before(coro_http_request &req, coro_http_response &res) {
@@ -91,7 +78,7 @@ std::string cleanup_markdown(const std::string &markdown_text) {
 
   // 3. 清理代码块和行内代码 (```code``` or `code`)
   text = std::regex_replace(text, std::regex("```[\\s\\S]*?```"),
-                            ""); // 移除代码块
+                            "");                                // 移除代码块
   text = std::regex_replace(text, std::regex("`(.*?)`"), "$1"); // 行内代码
 
   // 4. 清理标题 (# H1, ## H2, etc.)
@@ -185,4 +172,108 @@ struct check_password {
   }
 };
 
+// 登录相关的验证结构体
+struct check_login_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_LOGIN_INFO_EMPTY));
+      return false;
+    }
+
+    login_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_LOGIN_JSON_INVALID));
+      return false;
+    }
+    // 校验用户名、密码不能为空
+    if (info.username.empty() || info.password.empty()) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_LOGIN_CREDENTIALS_EMPTY));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+// 日志切面工具
+struct log_request_response {
+  // 在请求处理前记录请求信息
+  bool before(coro_http_request &req, coro_http_response &res) {
+    // 记录请求信息
+    std::ostringstream log_stream;
+
+    // 格式化时间戳
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch() % std::chrono::seconds(1));
+
+    std::tm now_tm = *std::localtime(&now_c);
+
+    log_stream << "[" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << "."
+               << std::setfill('0') << std::setw(3) << now_ms.count() << "] "
+               << "[REQUEST] " << req.get_method() << " " << req.full_url()
+               << " " << std::endl;
+
+    // 记录请求体
+    auto body = req.get_body();
+    if (!body.empty()) {
+      log_stream << "[REQUEST BODY]: "
+                 << (body.size() > 1000
+                         ? std::string(body.substr(0, 1000)) + "..."
+                         : std::string(body))
+                 << std::endl;
+    }
+
+    // 输出日志
+    std::cout << log_stream.str() << std::flush;
+
+    return true; // 继续处理请求
+  }
+
+  // 在请求处理后记录响应信息
+  bool after(coro_http_request &req, coro_http_response &res) {
+    // 记录响应信息
+    std::ostringstream log_stream;
+
+    // 格式化时间戳
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch() % std::chrono::seconds(1));
+
+    std::tm now_tm = *std::localtime(&now_c);
+
+    log_stream << "[" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S") << "."
+               << std::setfill('0') << std::setw(3) << now_ms.count() << "] "
+               << "[RESPONSE] " << req.get_method() << " " << req.full_url()
+               << " " << "Status: " << static_cast<int>(res.status())
+               << std::endl;
+
+    // 记录响应体（只记录前1000个字符以避免日志过长）
+    auto body = res.content();
+    if (!body.empty()) {
+      log_stream << "[RESPONSE BODY]: "
+                 << (body.size() > 1000
+                         ? std::string(body.substr(0, 1000)) + "..."
+                         : std::string(body))
+                 << std::endl;
+    }
+
+    log_stream << "----------------------------------------" << std::endl;
+
+    // 输出日志
+    std::cout << log_stream.str() << std::flush;
+
+    return true; // 继续处理后续操作
+  }
+};
 } // namespace purecpp
