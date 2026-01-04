@@ -316,21 +316,19 @@
 
     <!-- 文章列表主体 -->
     <main class="articles-container">
-        <!-- 页面标题 -->
-        <div class="page-header-area">
-            <div class="title-and-button">
-                <h5 class="page-title">技术文章</h5>
-
-                <a href="/new-article.html" class="button-create hidden" id="create-article-btn" role="button">
-                    <i class="fas fa-plus-circle"></i> 撰写新文章
-                </a>
-            </div>
-
-            <p class="page-description">分享现代C++、系统编程、性能优化等前沿技术</p>
-        </div>
-
         <!-- 文章列表 -->
         <div class="articles-list" x-data="articleComponent()">
+            <div class="page-header-area">
+                <div class="title-and-button">
+                    <h5 class="page-title">技术文章</h5>
+
+                    <a href="/new-article.html" x-show="currentUser" id="create-article-btn" role="button">
+                        <i class="fas fa-plus-circle"></i> 撰写新文章
+                    </a>
+                </div>
+
+                <p class="page-description">分享现代C++、系统编程、性能优化等前沿技术</p>
+            </div>
             <template x-for="article in articles" :key="article.slug">
                 <!-- 单篇文章卡片 -->
                 <article class="article-card">
@@ -411,29 +409,14 @@
             return date.toLocaleString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        function checkLoginStatus() {
-            const createBtn = document.getElementById('create-article-btn');
-            if (!createBtn) return;
-
-            // TODO: 在实际项目中，你需要调用后端API或检查本地存储来判断用户是否真的登录
-            // 这里我们用一个模拟变量来演示
-            // const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true'; // 假设登录状态存在 localStorage
-            const isUserLoggedIn = true;
-            if (isUserLoggedIn) {
-                // 如果登录，移除 .hidden 类，显示按钮
-                createBtn.classList.remove('hidden');
-            } else {
-                // 如果未登录，确保按钮隐藏
-                createBtn.classList.add('hidden');
-            }
-        }
         // 加载 header
         document.addEventListener('DOMContentLoaded', async function () {
-            checkLoginStatus();
+
         });
 
         function articleComponent() {
             return {
+                currentUser: null,
                 articles: [],
                 loading: true,
 
@@ -443,6 +426,13 @@
                 },
 
                 async fetchArticles() {
+                    const userInfo = localStorage.getItem('purecpp_user') || sessionStorage.getItem('purecpp_user');
+                    const token = localStorage.getItem('purecpp_token') || sessionStorage.getItem('purecpp_token');
+                    console.log("user: ", userInfo)
+                    if (userInfo && token) {
+                        this.currentUser = JSON.parse(userInfo);
+                    }
+
                     const response = await fetch("/api/v1/get_articles", {
                         method: 'GET'
                     });

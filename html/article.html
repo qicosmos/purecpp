@@ -347,7 +347,7 @@
                         username: this.currentUser.username
                     };
 
-                    const res = await fetch(`/api/v1/article/edit/${this.slug}`, {
+                    const res = await fetch(`/api/v1/edit_article`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)

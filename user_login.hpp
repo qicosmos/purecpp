@@ -27,6 +27,10 @@ public:
 
     // 查询数据库
     auto conn = connection_pool<dbng<mysql>>::instance().get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
 
     // 先尝试通过用户名查找
     auto users_by_name = conn->select(ormpp::all)

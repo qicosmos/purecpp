@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common.hpp"
+#include "user_aspects.hpp"
+
 #include <random>
 
 using namespace cinatra;
@@ -189,6 +191,37 @@ public:
       }
     }
 
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  void edit_article(coro_http_request &req, coro_http_response &resp) {
+    edit_article_info info =
+        std::any_cast<edit_article_info>(req.get_user_data());
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    articles_t article{};
+    article.tag_id = info.tag_id;
+    article.title = info.title;
+    article.abstraction = info.excerpt;
+    article.content = info.content;
+    article.updated_at = get_timestamp_milliseconds();
+
+    std::string slug = "slug='";
+    slug.append(info.slug).append("'");
+    int n = conn->update_some<&articles_t::tag_id, &articles_t::title,
+                              &articles_t::abstraction, &articles_t::content,
+                              &articles_t::updated_at>(article, slug);
+
+    if (n == 0) {
+      set_server_internel_error(resp);
+      return;
+    }
+    std::string json = make_data(std::string("修改成功"));
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 
