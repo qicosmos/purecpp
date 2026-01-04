@@ -605,5 +605,4 @@ struct check_edit_article {
     return true;
   }
 };
-
 } // namespace purecpp
