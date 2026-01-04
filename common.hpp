@@ -2,6 +2,7 @@
 #include <chrono>
 #include <string_view>
 
+#include <cinatra.hpp>
 #include "entity.hpp"
 #include <iguana/json_reader.hpp>
 #include <iguana/json_writer.hpp>

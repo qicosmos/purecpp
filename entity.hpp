@@ -84,6 +84,29 @@ inline constexpr std::string_view get_alias_struct_name(users_t *) {
   return "users"; // 表名默认结构体名字(users_t), 这里可以修改表名
 }
 
+// 用户token表
+enum class TokenType : int32_t {
+  RESET_PASSWORD = 0, // 重置密码
+  VERIFY_EMAIL = 1,   // 验证邮箱
+  REFRESH_TOKEN = 2, // 刷新token
+};
+
+struct users_token_t {
+  uint64_t id;
+  uint64_t user_id;
+  TokenType token_type; // 0: 重置密码, 1: 验证邮箱
+  std::array<char, 129> token;
+  uint64_t created_at;
+  uint64_t expires_at;
+};
+// 注册users_token_t的主键
+REGISTER_AUTO_KEY(users_token_t, id);
+
+inline constexpr std::string_view get_alias_struct_name(
+    users_token_t *) {
+  return "user_tokens";  // 表名
+}
+
 // 文章相关的表
 struct articles_t {
   uint64_t article_id = 0;

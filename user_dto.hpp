@@ -45,6 +45,12 @@ struct login_resp_data {
   uint64_t experience;
   UserLevel level;
 };
+
+// 登出相关结构体
+struct logout_info {
+  uint64_t user_id;
+};
+
 // 修改密码相关结构体
 struct change_password_info {
   uint64_t user_id;
@@ -52,6 +58,17 @@ struct change_password_info {
   std::string new_password;
 };
 
-// 密码修改成功时，不响应任何data
-struct change_password_resp_data {};
+// 忘记密码相关结构体
+struct forgot_password_info {
+    std::string email;
+};
+
+struct reset_password_info {
+    std::string token;
+    std::string new_password;
+};
+
+// 空数据结构体，用于没有具体数据的响应
+struct empty_data {
+};
 } // namespace purecpp

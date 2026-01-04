@@ -221,17 +221,51 @@ function initUserMenu() {
     // 处理退出登录
     const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
+        logoutLink.addEventListener('click', async function (e) {
             e.preventDefault();
-            
-            // 清除localStorage和sessionStorage中的用户信息
-            localStorage.removeItem('purecpp_user');
-            localStorage.removeItem('purecpp_token');
-            sessionStorage.removeItem('purecpp_user');
-            sessionStorage.removeItem('purecpp_token');
-            
-            // 刷新页面
-            window.location.reload();
+
+            // 获取当前用户的token和用户信息
+            const token = localStorage.getItem('purecpp_token') || sessionStorage.getItem('purecpp_token');
+            const userInfoStr = localStorage.getItem('purecpp_user') || sessionStorage.getItem('purecpp_user');
+
+            // 提取用户ID
+            let userId = null;
+            if (userInfoStr) {
+                try {
+                    const userInfo = JSON.parse(userInfoStr);
+                    userId = userInfo.id || userInfo.user_id;
+                } catch (error) {
+                    console.error('Error parsing user info:', error);
+                }
+            }
+
+            // 构造请求头和请求体
+            const headers = {'Content-Type': 'application/json'};
+            const body = {user_id: userId};
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            // 调用后台logout服务
+            try {
+                await fetch('/api/v1/logout', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+            } catch (error) {
+                console.error('Logout request failed:', error);
+            } finally {
+                // 清除localStorage和sessionStorage中的用户信息
+                localStorage.removeItem('purecpp_user');
+                localStorage.removeItem('purecpp_token');
+                sessionStorage.removeItem('purecpp_user');
+                sessionStorage.removeItem('purecpp_token');
+
+                // 刷新页面
+                window.location.reload();
+            }
         });
     }
 }

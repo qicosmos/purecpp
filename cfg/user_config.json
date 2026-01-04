@@ -1,5 +1,12 @@
 {
   "lock_failed_attempts": 5,
   "lock_duration_minutes": 10,
-  "token_expiration_minutes": 60
+  "token_expiration_minutes": 60,
+  "smtp_host": "smtp.qq.com",
+  "smtp_port": 465,
+  "smtp_user": "xxxx@qq.com",
+  "smtp_password": "xxxxxxxxxx",
+  "smtp_from_email": "xxxxx@qq.com",
+  "smtp_from_name": "PureCpp管理员",
+  "reset_password_url": "http://localhost:3389/reset_password.html"
 }
