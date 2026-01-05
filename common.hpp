@@ -2,8 +2,10 @@
 #include <chrono>
 #include <string_view>
 
+#include "config.hpp"
 #include "entity.hpp"
 #include <cinatra.hpp>
+#include <cinatra/smtp_client.hpp>
 #include <iguana/json_reader.hpp>
 #include <iguana/json_writer.hpp>
 
@@ -46,5 +48,120 @@ inline uint64_t get_timestamp_milliseconds() {
   auto milliseconds =
       std::chrono::duration_cast<std::chrono::milliseconds>(duration);
   return static_cast<uint64_t>(milliseconds.count());
+}
+
+// 通用邮件发送函数
+inline async_simple::coro::Lazy<bool> send_email(const std::string &to_email,
+                                                 const std::string &subject,
+                                                 const std::string &content,
+                                                 bool is_html = true) {
+  auto &conf = purecpp_config::get_instance();
+  auto &user_conf = conf.user_cfg_;
+
+  // 检查必要的配置是否存在
+  if (user_conf.smtp_host.empty() || user_conf.smtp_user.empty() ||
+      user_conf.smtp_password.empty()) {
+    CINATRA_LOG_ERROR << "SMTP配置不完整";
+    co_return false;
+  }
+
+  try {
+    // 创建SMTP客户端（使用SSL）
+    auto client = smtp::get_smtp_client(coro_io::get_global_executor());
+    bool r = co_await client.connect(user_conf.smtp_host,
+                                     std::to_string(user_conf.smtp_port));
+    // 连接SMTP服务器
+    if (!r) {
+      CINATRA_LOG_ERROR << "SMTP连接失败";
+      co_return false;
+    }
+
+    // 设置邮件内容
+    cinatra::smtp::email_data email_data;
+    email_data.user_name = user_conf.smtp_user;
+    email_data.auth_pwd = user_conf.smtp_password;
+    email_data.from_email = user_conf.smtp_from_email;
+    email_data.to_email.push_back(to_email);
+    email_data.subject = subject;
+
+    email_data.is_html = is_html;
+    email_data.text = content;
+
+    r = co_await client.send_email(email_data);
+    if (!r) {
+      CINATRA_LOG_ERROR << "邮件发送失败: " << to_email;
+      co_return false;
+    }
+
+    CINATRA_LOG_INFO << "邮件发送成功: " << to_email;
+    co_return true;
+  } catch (const std::exception &e) {
+    CINATRA_LOG_ERROR << "发送邮件时发生异常: " << e.what();
+    co_return false;
+  }
+}
+
+// 发送邮箱验证邮件
+inline async_simple::coro::Lazy<bool>
+send_verify_email(const std::string &email, const std::string &token) {
+  auto &conf = purecpp_config::get_instance();
+  auto &user_conf = conf.user_cfg_;
+  // 构建验证链接
+  std::string verify_link =
+      user_conf.web_server_url + "/verify_email.html?token=" + token;
+
+  try {
+    // 构建邮件内容
+    std::string email_content;
+    email_content += "<html><body>";
+    email_content += "<h3>邮箱验证</h3>";
+    email_content += "<p>欢迎注册PureCpp！请点击以下链接完成邮箱验证：</p>";
+    email_content +=
+        "<a href=\"" + verify_link + "\">" + verify_link + "</a><br/><br/>";
+    email_content += "<p>如果您没有注册PureCpp账号，请忽略此邮件。</p>";
+    email_content += "<p>此链接有效期为24小时。</p>";
+    email_content += "<p>感谢您使用PureCpp！</p>";
+    email_content += "</body></html>";
+
+    // 发送真实邮件
+    bool r = co_await send_email(email, "PureCpp邮箱验证", email_content);
+    co_return r;
+  } catch (const std::exception &e) {
+    CINATRA_LOG_ERROR << "发送邮箱验证邮件时发生异常: " << e.what();
+    co_return false;
+  }
+}
+
+// 发送密码重置邮件
+inline async_simple::coro::Lazy<bool>
+send_reset_email(const std::string &email, const std::string &token) {
+  auto &conf = purecpp_config::get_instance();
+  auto &user_conf = conf.user_cfg_;
+
+  try {
+    // 生成重置链接
+    std::string reset_link =
+        user_conf.web_server_url + "/reset_password.html?token=" + token;
+
+    // 构建邮件内容
+    std::string email_content;
+    email_content += "<html><body>";
+    email_content += "<h3>密码重置请求</h3>";
+    email_content +=
+        "<p>您请求重置您的PureCpp密码。请点击以下链接进行重置：</p>";
+    email_content +=
+        "<a href=\"" + reset_link + "\">" + reset_link + "</a><br/><br/>";
+    email_content += "<p>如果您没有请求重置密码，请忽略此邮件。</p>";
+    email_content += "<p>此链接有效期为1小时。</p>";
+    email_content += "<p>感谢您使用PureCpp！</p>";
+    email_content += "</body></html>";
+
+    // 发送真实邮件
+    bool r = co_await send_email(email, "PureCpp密码重置", email_content);
+    co_return r;
+  } catch (const std::exception &e) {
+    CINATRA_LOG_ERROR << "发送密码重置邮件时发生异常: " << e.what();
+    co_return false;
+  }
 }
 } // namespace purecpp
