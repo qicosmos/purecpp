@@ -179,10 +179,7 @@ public:
 
     std::copy(token.begin(), token.end(), reset_token.token.begin());
     // 删除该用户之前的所有重置token
-    std::string delete_sql =
-        "DELETE FROM user_tokens WHERE user_id = " + std::to_string(user.id) +
-        " AND token_type = " + std::to_string(int(TokenType::RESET_PASSWORD));
-    conn->execute(delete_sql);
+    conn->delete_records_s<users_token_t>("user_id = ? and token_type = ?", user.id, TokenType::RESET_PASSWORD);
 
     // 插入新的token
     uint64_t insert_id = conn->get_insert_id_after_insert(reset_token);
@@ -264,12 +261,8 @@ public:
                                   make_error("重置密码失败，请稍后重试"));
       return;
     }
-    // 删除已使用的token
     // 删除该用户之前的所有重置token
-    std::string delete_sql =
-        "DELETE FROM user_tokens WHERE user_id = " + std::to_string(user.id) +
-        " AND token_type = " + std::to_string(int(TokenType::RESET_PASSWORD));
-    conn->execute(delete_sql);
+    conn->delete_records_s<users_token_t>("user_id = ? and token_type = ?", user.id, TokenType::RESET_PASSWORD);
 
     // 返回成功响应
     std::string json = make_data(empty_data{}, "密码重置成功");
