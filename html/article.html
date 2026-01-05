@@ -369,25 +369,7 @@
             }));
         });
 
-        function checkLoginStatus() {
-            const createBtn = document.getElementById('create-article-btn');
-            if (!createBtn) return;
-
-            // TODO: 在实际项目中，你需要调用后端API或检查本地存储来判断用户是否真的登录
-            // 这里我们用一个模拟变量来演示
-            // const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true'; // 假设登录状态存在 localStorage
-            const isUserLoggedIn = true;
-            if (isUserLoggedIn) {
-                // 如果登录，移除 .hidden 类，显示按钮
-                createBtn.classList.remove('hidden');
-            } else {
-                // 如果未登录，确保按钮隐藏
-                createBtn.classList.add('hidden');
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', async () => {
-            checkLoginStatus();
         });
     </script>
 </body>

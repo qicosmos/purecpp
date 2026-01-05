@@ -199,5 +199,9 @@ int main() {
                                article);
   server.set_http_handler<POST>("/api/v1/edit_article", &articles::edit_article,
                                 article, check_edit_article{});
+  server.set_http_handler<GET>("/api/v1/get_pending_articles",
+                               &articles::get_pending_articles, article);
+  server.set_http_handler<POST>("/api/v1/review_pending_article",
+                                &articles::handle_review_article, article);
   server.sync_start();
 }

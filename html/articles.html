@@ -428,7 +428,6 @@
                 async fetchArticles() {
                     const userInfo = localStorage.getItem('purecpp_user') || sessionStorage.getItem('purecpp_user');
                     const token = localStorage.getItem('purecpp_token') || sessionStorage.getItem('purecpp_token');
-                    console.log("user: ", userInfo)
                     if (userInfo && token) {
                         this.currentUser = JSON.parse(userInfo);
                     }

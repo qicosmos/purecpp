@@ -122,8 +122,8 @@ struct articles_t {
   std::string review_comment; // 审核意见
   int featured_weight;        // 置顶，精华
   uint64_t review_date;       // 审核完成时间
-  std::string
-      review_status; // pending_review (待审核), rejected (已拒绝), accepted
+  std::string review_status =
+      "pending_review"; // pending_review (待审核), rejected (已拒绝), accepted
   std::string status; // 状态：published, draft, archived
   bool is_deleted;
 };
