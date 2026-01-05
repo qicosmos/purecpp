@@ -4,8 +4,6 @@
 #include <filesystem>
 #include <iguana/json_reader.hpp>
 #include <iguana/json_writer.hpp>
-#include <iguana/prettify.hpp>
-#include <iostream>
 #include <random>
 #include <vector>
 
@@ -59,7 +57,7 @@ struct test_optional {
 bool init_db() {
   std::ifstream file("cfg/db_config.json", std::ios::in);
   if (!file.is_open()) {
-    std::cout << "no config file\n";
+    CINATRA_LOG_ERROR << "no config file";
     return false;
   }
 
@@ -74,7 +72,7 @@ bool init_db() {
     pool.init(conf.db_conn_num, conf.db_ip, conf.db_user_name, conf.db_pwd,
               conf.db_name.data(), conf.db_conn_timeout, conf.db_port);
   } catch (const std::exception &e) {
-    std::cout << e.what() << std::endl;
+    CINATRA_LOG_ERROR << e.what();
     return false;
   }
 
@@ -95,6 +93,17 @@ bool init_db() {
   conn->create_datatable<articles_t>(ormpp_auto_key{"article_id"},
                                      ormpp_unique{{"slug"}});
 
+  // 创建密码重置token表
+  bool created = conn->create_datatable<users_token_t>(
+      ormpp_auto_key{"id"}, ormpp_unique{{"user_id", "token_type"}},
+      ormpp_unique{{"token"}},
+      ormpp_not_null{
+          {"user_id", "token_type", "token", "created_at", "expires_at"}});
+  if (created) {
+    CINATRA_LOG_INFO << "Table 'users_token' created successfully.";
+  } else {
+    CINATRA_LOG_ERROR << "Table 'users_token' create error.";
+  }
   return true;
 }
 
@@ -155,11 +164,27 @@ int main() {
   server.set_http_handler<POST>("/api/v1/login", &user_login_t::handle_login,
                                 usr_login, log_request_response{},
                                 check_login_input{});
+
+  // 添加退出登录路由
+  server.set_http_handler<POST, GET>(
+      "/api/v1/logout", &user_login_t::handle_logout, usr_login,
+      log_request_response{}, check_token{}, check_logout_input{});
+
   user_password_t usr_password{};
   server.set_http_handler<POST>(
       "/api/v1/change_password", &user_password_t::handle_change_password,
       usr_password, log_request_response{}, check_token{},
       check_change_password_input{}, check_new_password{});
+
+  // 添加忘记密码和重置密码的路由
+  server.set_http_handler<POST>(
+      "/api/v1/forgot_password", &user_password_t::handle_forgot_password,
+      usr_password, log_request_response{}, check_forgot_password_input{});
+
+  server.set_http_handler<POST>(
+      "/api/v1/reset_password", &user_password_t::handle_reset_password,
+      usr_password, log_request_response{}, check_reset_password_input{},
+      check_reset_password{});
   tags tag{};
   server.set_http_handler<GET>("/api/v1/get_tags", &tags::get_tags, tag);
 

@@ -18,6 +18,7 @@ target_link_libraries(ormpp INTERFACE ${MYSQL_LIBRARY})
 target_include_directories(ormpp INTERFACE ormpp ormpp/ormpp ${MYSQL_INCLUDE_DIR})
 
 add_executable(purecpp feather.cpp)
+target_compile_options(purecpp PRIVATE -DCINATRA_ENABLE_SSL)
 target_link_libraries(purecpp ormpp OpenSSL::SSL OpenSSL::Crypto)
 
 # 复制 HTML 资源的函数

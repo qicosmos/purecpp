@@ -3,6 +3,7 @@
 #include <string_view>
 
 #include "entity.hpp"
+#include <cinatra.hpp>
 #include <iguana/json_reader.hpp>
 #include <iguana/json_writer.hpp>
 
@@ -27,7 +28,7 @@ template <typename T> inline std::string make_data(T t, std::string msg = "") {
     iguana::to_json(data, json);
   } catch (std::exception &e) {
     json = "";
-    std::cout << e.what() << "\n";
+    CINATRA_LOG_ERROR << e.what();
   }
 
   return json;

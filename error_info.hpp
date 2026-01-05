@@ -1,14 +1,7 @@
 #pragma once
-#include <string>
 #include <string_view>
-#include <system_error>
-#include <vector>
 
-// 先包含必要的头文件
 #include <cinatra.hpp>
-#include <iguana/json_writer.hpp>
-
-#include "user_dto.hpp"
 
 using namespace cinatra;
 using namespace iguana;
@@ -100,3 +93,14 @@ inline constexpr std::string_view PURECPP_ERROR_RESET_PASSWORD_JSON_INVALID =
     "重置密码信息格式不正确。";
 inline constexpr std::string_view PURECPP_ERROR_RESET_PASSWORD_REQUIRED_FIELDS =
     "token和新密码不能为空。";
+
+// 登出相关错误
+inline constexpr std::string_view PURECPP_ERROR_LOGOUT_INFO_EMPTY =
+    "登出信息不能为空。";
+inline constexpr std::string_view PURECPP_ERROR_LOGOUT_JSON_INVALID =
+    "登出信息格式不正确。";
+inline constexpr std::string_view PURECPP_ERROR_LOGOUT_USER_ID_EMPTY =
+    "用户ID不能为空。";
+inline constexpr std::string_view PURECPP_ERROR_LOGOUT_USER_ID_INVALID =
+    "用户ID无效。";
+inline constexpr std::string_view PURECPP_ERROR_LOGOUT_FAILED = "登出失败";

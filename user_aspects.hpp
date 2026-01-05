@@ -1,16 +1,24 @@
 #pragma once
-#include "common.hpp"
-#include "jwt_token.hpp"
 #include <any>
-#include <cinatra.hpp>
+#include <chrono>
+#include <iomanip>
+#include <regex>
+#include <sstream>
 #include <string_view>
 #include <system_error>
+
+#include <cinatra.hpp>
+#include <iguana/json_reader.hpp>
+#include <iguana/json_writer.hpp>
 
 using namespace cinatra;
 using namespace iguana;
 
+#include "common.hpp"
 #include "error_info.hpp"
+#include "jwt_token.hpp"
 #include "user_dto.hpp"
+
 namespace purecpp {
 inline const std::vector<std::string_view> cpp_questions{
     "C++中声明指向int的常量指针, 语法是____ int* "
@@ -62,6 +70,7 @@ struct check_cpp_answer {
     return true;
   }
 };
+
 std::string cleanup_markdown(const std::string &markdown_text) {
   std::string text = markdown_text;
 
@@ -95,6 +104,7 @@ std::string cleanup_markdown(const std::string &markdown_text) {
 
   return text;
 }
+
 struct check_user_name {
   bool before(coro_http_request &req, coro_http_response &res) {
     register_info info = std::any_cast<register_info>(req.get_user_data());
@@ -140,33 +150,44 @@ struct check_email {
   }
 };
 
+// 验证密码复杂度的独立函数
+std::pair<bool, std::string>
+validate_password_complexity(const std::string &password) {
+  // 检查密码长度
+  if (password.size() < 6 || password.size() > 20) {
+    return {false, "密码长度不合法，长度6-20位。"};
+  }
+
+  bool has_upper = false;
+  bool has_lower = false;
+  bool has_digit = false;
+
+  // 检查字符类型要求
+  for (char c : password) {
+    if (std::isupper(static_cast<unsigned char>(c))) {
+      has_upper = true;
+    } else if (std::islower(static_cast<unsigned char>(c))) {
+      has_lower = true;
+    } else if (std::isdigit(static_cast<unsigned char>(c))) {
+      has_digit = true;
+    }
+  }
+
+  // 至少包含大小写字母和数字
+  if (!(has_upper && has_lower && has_digit)) {
+    return {false, "密码至少包含大小写字母和数字。"};
+  }
+
+  return {true, ""};
+}
+
 struct check_password {
   bool before(coro_http_request &req, coro_http_response &res) {
     register_info info = std::any_cast<register_info>(req.get_user_data());
-    if (info.password.size() < 6 || info.password.size() > 20) {
+    auto [valid, error_msg] = validate_password_complexity(info.password);
+    if (!valid) {
       res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码长度不合法，长度6-20位。"));
-      return false;
-    }
-
-    bool has_upper = false;
-    bool has_lower = false;
-    bool has_digit = false;
-
-    // 2. 字符类型要求 (至少包含大小写字母、数字和特殊字符各一个)
-    for (char c : info.password) {
-      if (std::isupper(static_cast<unsigned char>(c))) {
-        has_upper = true;
-      } else if (std::islower(static_cast<unsigned char>(c))) {
-        has_lower = true;
-      } else if (std::isdigit(static_cast<unsigned char>(c))) {
-        has_digit = true;
-      }
-    }
-    bool r = has_upper && has_lower && has_digit;
-    if (!r) {
-      res.set_status_and_content(status_type::bad_request,
-                                 make_error("密码至少包含大小写字母和数字。"));
+                                 make_error(error_msg));
       return false;
     }
     return true;
@@ -196,6 +217,37 @@ struct check_login_input {
       res.set_status_and_content(
           status_type::bad_request,
           make_error(PURECPP_ERROR_LOGIN_CREDENTIALS_EMPTY));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+struct check_logout_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_LOGOUT_INFO_EMPTY));
+      return false;
+    }
+
+    logout_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_LOGOUT_JSON_INVALID));
+      return false;
+    }
+
+    // 校验user_id不能为空
+    if (info.user_id == 0) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_LOGOUT_USER_ID_EMPTY));
       return false;
     }
 
@@ -299,33 +351,18 @@ struct check_new_password {
     change_password_info info =
         std::any_cast<change_password_info>(req.get_user_data());
 
-    // 检查新密码长度
-    if (info.new_password.size() < 6 || info.new_password.size() > 20) {
-      res.set_status_and_content(status_type::bad_request,
-                                 make_error(PURECPP_ERROR_PASSWORD_LENGTH));
-      return false;
-    }
-
-    bool has_upper = false;
-    bool has_lower = false;
-    bool has_digit = false;
-
-    // 检查新密码字符类型要求
-    for (char c : info.new_password) {
-      if (std::isupper(static_cast<unsigned char>(c))) {
-        has_upper = true;
-      } else if (std::islower(static_cast<unsigned char>(c))) {
-        has_lower = true;
-      } else if (std::isdigit(static_cast<unsigned char>(c))) {
-        has_digit = true;
-      }
-    }
-
-    // 至少包含大小写字母和数字
-    bool valid = has_upper && has_lower && has_digit;
+    // 验证新密码复杂度
+    auto [valid, error_msg] = validate_password_complexity(info.new_password);
     if (!valid) {
-      res.set_status_and_content(status_type::bad_request,
-                                 make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
+      // 使用预定义的错误码
+      if (error_msg.find("长度") != std::string::npos) {
+        res.set_status_and_content(status_type::bad_request,
+                                   make_error(PURECPP_ERROR_PASSWORD_LENGTH));
+      } else {
+        res.set_status_and_content(
+            status_type::bad_request,
+            make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
+      }
       return false;
     }
 
@@ -340,6 +377,98 @@ struct check_new_password {
     return true;
   }
 };
+
+// 忘记密码相关的验证结构体
+struct check_forgot_password_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_EMAIL_EMPTY));
+      return false;
+    }
+
+    forgot_password_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_FORGOT_PASSWORD_JSON_INVALID));
+      return false;
+    }
+
+    // 校验邮箱不能为空
+    if (info.email.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error(PURECPP_ERROR_EMAIL_EMPTY));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+// 重置密码相关的验证结构体
+struct check_reset_password_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_RESET_PASSWORD_EMPTY));
+      return false;
+    }
+
+    reset_password_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_RESET_PASSWORD_JSON_INVALID));
+      return false;
+    }
+
+    // 校验token和新密码不能为空
+    if (info.token.empty() || info.new_password.empty()) {
+      res.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_RESET_PASSWORD_REQUIRED_FIELDS));
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
+  }
+};
+
+// 重置密码时的密码验证
+struct check_reset_password {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    reset_password_info info =
+        std::any_cast<reset_password_info>(req.get_user_data());
+
+    // 验证新密码复杂度
+    auto [valid, error_msg] = validate_password_complexity(info.new_password);
+    if (!valid) {
+      // 使用预定义的错误码
+      if (error_msg.find("长度") != std::string::npos) {
+        res.set_status_and_content(status_type::bad_request,
+                                   make_error(PURECPP_ERROR_PASSWORD_LENGTH));
+      } else {
+        res.set_status_and_content(
+            status_type::bad_request,
+            make_error(PURECPP_ERROR_PASSWORD_COMPLEXITY));
+      }
+      return false;
+    }
+
+    return true;
+  }
+};
+
 // 日志切面工具
 struct log_request_response {
   // 在请求处理前记录请求信息
@@ -371,7 +500,7 @@ struct log_request_response {
     }
 
     // 输出日志
-    std::cout << log_stream.str() << std::flush;
+    CINATRA_LOG_INFO << log_stream.str();
 
     return true; // 继续处理请求
   }
@@ -408,7 +537,7 @@ struct log_request_response {
     log_stream << "----------------------------------------" << std::endl;
 
     // 输出日志
-    std::cout << log_stream.str() << std::flush;
+    CINATRA_LOG_INFO << log_stream.str();
 
     return true; // 继续处理后续操作
   }

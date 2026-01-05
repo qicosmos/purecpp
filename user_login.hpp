@@ -149,6 +149,7 @@ public:
    */
   void handle_logout(cinatra::coro_http_request &req,
                      cinatra::coro_http_response &resp) {
+    logout_info info = std::any_cast<logout_info>(req.get_user_data());
     // 从请求头获取令牌
     std::string token;
     auto headers = req.get_headers();
@@ -181,6 +182,31 @@ public:
 
     // 将令牌添加到黑名单
     token_blacklist::instance().add(token);
+
+    // 修改用户状态为登出
+    // 从数据库中查询用户
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+
+    auto users_by_id = conn->select(ormpp::all)
+                           .from<users_t>()
+                           .where(col(&users_t::id).param())
+                           .collect(info.user_id);
+
+    if (users_by_id.empty()) {
+      resp.set_status_and_content(
+          cinatra::status_type::bad_request,
+          make_error(PURECPP_ERROR_LOGOUT_USER_ID_INVALID));
+      return;
+    }
+
+    // 更新用户状态为登出
+    auto user = users_by_id[0];
+    user.status = std::string(STATUS_OF_OFFLINE);
+    if (conn->update<users_t>(user) != 1) {
+      resp.set_status_and_content(cinatra::status_type::bad_request,
+                                  make_error(PURECPP_ERROR_LOGOUT_FAILED));
+      return;
+    }
 
     // 返回成功响应
     resp.set_status_and_content(

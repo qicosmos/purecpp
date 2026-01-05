@@ -370,7 +370,7 @@
                 serverError: '',
                 showPassword: false,
                 loading: false,
-                
+
                 // 初始化表单数据
                 init() {
                     // 检查localStorage中是否有保存的登录信息
@@ -378,7 +378,7 @@
                     if (savedRememberMe === 'true') {
                         const savedUsername = localStorage.getItem('purecpp_username');
                         const savedPassword = localStorage.getItem('purecpp_password');
-                        
+
                         if (savedUsername && savedPassword) {
                             this.username = savedUsername;
                             this.password = savedPassword;
