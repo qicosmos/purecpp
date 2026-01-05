@@ -1,5 +1,4 @@
 #pragma once
-#include <cinttypes>
 #include <string>
 
 #include <ormpp/connection_pool.hpp>
@@ -88,7 +87,7 @@ inline constexpr std::string_view get_alias_struct_name(users_t *) {
 enum class TokenType : int32_t {
   RESET_PASSWORD = 0, // 重置密码
   VERIFY_EMAIL = 1,   // 验证邮箱
-  REFRESH_TOKEN = 2, // 刷新token
+  REFRESH_TOKEN = 2,  // 刷新token
 };
 
 struct users_token_t {
@@ -102,9 +101,8 @@ struct users_token_t {
 // 注册users_token_t的主键
 REGISTER_AUTO_KEY(users_token_t, id);
 
-inline constexpr std::string_view get_alias_struct_name(
-    users_token_t *) {
-  return "user_tokens";  // 表名
+inline constexpr std::string_view get_alias_struct_name(users_token_t *) {
+  return "user_tokens"; // 表名
 }
 
 // 文章相关的表

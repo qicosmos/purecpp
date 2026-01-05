@@ -1,8 +1,7 @@
 #pragma once
 
-#include <fstream> // 鐢ㄤ簬 std::ifstream
+#include <fstream>
 #include <iguana/json_reader.hpp>
-#include <iostream> // 鐢ㄤ簬 std::cout
 #include <string>
 
 namespace purecpp {
