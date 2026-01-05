@@ -104,3 +104,10 @@ inline constexpr std::string_view PURECPP_ERROR_LOGOUT_USER_ID_EMPTY =
 inline constexpr std::string_view PURECPP_ERROR_LOGOUT_USER_ID_INVALID =
     "用户ID无效。";
 inline constexpr std::string_view PURECPP_ERROR_LOGOUT_FAILED = "登出失败";
+
+inline constexpr std::string_view PURECPP_ERROR_EDIT_ARTICLE_REQUIRED_FIELDS =
+    "编辑文章的信息不能为空。";
+inline constexpr std::string_view PURECPP_ERROR_INVALID_EDIT_ARTICLE_INFO =
+    "非法的编辑文章的信息。";
+inline constexpr std::string_view PURECPP_ERROR_USER_NOT_EXSIT_OR_LOGIN =
+    "用户不存在或未登录。";
