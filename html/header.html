@@ -161,6 +161,7 @@
     }
 
     @media (max-width: 992px) {
+
         /* --- 4. 汉堡菜单 --- */
         .mobile-toggle {
             display: block !important;
@@ -259,7 +260,13 @@
                     <div class="user-menu-header">
                         <div id="user-menu-username"></div>
                     </div>
-                    <div class="user-menu-content">
+                    <div class="user-menu-content"
+                        x-data="{ user: JSON.parse(localStorage.getItem('purecpp_user') || '{}') }">
+                        <a href="admin_review.html" x-show="user.role === 'admin'" class="user-menu-item"
+                            style="color: var(--primary);">
+                            <i class="fas fa-tasks"></i>
+                            审核管理
+                        </a>
                         <a href="profile.html" class="user-menu-item">
                             <i class="fas fa-user"></i>
                             个人资料
@@ -278,4 +285,4 @@
             </div>
         </li>
     </ul>
-</nav>  
+</nav>

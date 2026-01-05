@@ -1,4 +1,7 @@
 #pragma once
+#include "common.hpp"
+#include "entity.hpp"
+#include "jwt_token.hpp"
 #include <any>
 #include <chrono>
 #include <iomanip>
@@ -88,7 +91,7 @@ std::string cleanup_markdown(const std::string &markdown_text) {
 
   // 3. 清理代码块和行内代码 (```code``` or `code`)
   text = std::regex_replace(text, std::regex("```[\\s\\S]*?```"),
-                            "");                                // 移除代码块
+                            ""); // 移除代码块
   text = std::regex_replace(text, std::regex("`(.*?)`"), "$1"); // 行内代码
 
   // 4. 清理标题 (# H1, ## H2, etc.)
@@ -540,6 +543,66 @@ struct log_request_response {
     CINATRA_LOG_INFO << log_stream.str();
 
     return true; // 继续处理后续操作
+  }
+};
+
+struct edit_article_info {
+  std::string slug;
+  std::string title;
+  std::string excerpt; // 摘要
+  std::string content;
+  int tag_id;
+  std::string username;
+};
+
+inline bool has_login(std::string_view username, coro_http_response &resp) {
+  auto &db_pool = connection_pool<dbng<mysql>>::instance();
+  auto conn = db_pool.get();
+  if (conn == nullptr) {
+    set_server_internel_error(resp);
+    return false;
+  }
+
+  auto c = conn->select(count(col(&users_t::user_name)))
+               .from<users_t>()
+               .where(col(&users_t::user_name).param() &&
+                      col(&users_t::status) == std::string(STATUS_OF_ONLINE))
+               .collect(username);
+  if (c == 0) {
+    resp.set_status_and_content(
+        status_type::bad_request,
+        make_error(PURECPP_ERROR_USER_NOT_EXSIT_OR_LOGIN));
+
+    return false;
+  }
+  return true;
+}
+
+struct check_edit_article {
+  bool before(coro_http_request &req, coro_http_response &resp) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      resp.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_EDIT_ARTICLE_REQUIRED_FIELDS));
+      return false;
+    }
+    edit_article_info info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      resp.set_status_and_content(
+          status_type::bad_request,
+          make_error(PURECPP_ERROR_INVALID_EDIT_ARTICLE_INFO));
+      return false;
+    }
+
+    if (!has_login(info.username, resp)) {
+      return false;
+    }
+
+    req.set_user_data(info);
+    return true;
   }
 };
 } // namespace purecpp

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common.hpp"
+#include "user_aspects.hpp"
+
 #include <random>
 
 using namespace cinatra;
@@ -25,8 +27,28 @@ struct article_list {
   uint32_t comments_count;
 };
 
+struct pending_article_list {
+  std::string title;
+  std::string summary;
+  std::string content;
+  std::array<char, 8> slug;
+  std::array<char, 21> author_name;
+  std::array<char, 50> tag_name;
+  uint64_t created_at;
+  uint64_t updated_at;
+  uint32_t views_count;
+  uint32_t comments_count;
+};
+
+struct review_opinion {
+  std::string reviewer_name;
+  std::string slug;
+  std::string review_status;
+};
+
 struct article_detail {
   std::string title;
+  std::string summary;
   std::string content;
   std::array<char, 21> author_name;
   std::array<char, 50> tag_name;
@@ -166,9 +188,10 @@ public:
 
     // article_detail
     auto list =
-        conn->select(col(&articles_t::title), col(&articles_t::content),
-                     col(&users_t::user_name), col(&tags_t::name),
-                     col(&articles_t::created_at), col(&articles_t::updated_at),
+        conn->select(col(&articles_t::title), col(&articles_t::abstraction),
+                     col(&articles_t::content), col(&users_t::user_name),
+                     col(&tags_t::name), col(&articles_t::created_at),
+                     col(&articles_t::updated_at),
                      col(&articles_t::views_count),
                      col(&articles_t::comments_count))
             .from<articles_t>()
@@ -187,6 +210,37 @@ public:
       }
     }
 
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  void edit_article(coro_http_request &req, coro_http_response &resp) {
+    edit_article_info info =
+        std::any_cast<edit_article_info>(req.get_user_data());
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    articles_t article{};
+    article.tag_id = info.tag_id;
+    article.title = info.title;
+    article.abstraction = info.excerpt;
+    article.content = info.content;
+    article.updated_at = get_timestamp_milliseconds();
+
+    std::string slug = "slug='";
+    slug.append(info.slug).append("'");
+    int n = conn->update_some<&articles_t::tag_id, &articles_t::title,
+                              &articles_t::abstraction, &articles_t::content,
+                              &articles_t::updated_at>(article, slug);
+
+    if (n == 0) {
+      set_server_internel_error(resp);
+      return;
+    }
+    std::string json = make_data(std::string("修改成功"));
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 
@@ -211,7 +265,8 @@ public:
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
-            .where(col(&articles_t::is_deleted) == 0)
+            .where(col(&articles_t::is_deleted) == 0 &&
+                   col(&articles_t::review_status) == "accepted")
             .order_by(col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
@@ -223,6 +278,104 @@ public:
       return;
     }
 
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  void get_pending_articles(coro_http_request &req, coro_http_response &resp) {
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    size_t limit = 20; // will update, it's from web front end.
+    size_t offset = 0; // will update, it's from web front end.
+
+    auto list =
+        conn->select(col(&articles_t::title), col(&articles_t::abstraction),
+                     col(&articles_t::content), col(&articles_t::slug),
+                     col(&users_t::user_name), col(&tags_t::name),
+                     col(&articles_t::created_at), col(&articles_t::updated_at),
+                     col(&articles_t::views_count),
+                     col(&articles_t::comments_count))
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
+            .where(col(&articles_t::is_deleted) == 0 &&
+                   col(&articles_t::review_status) == "pending_review")
+            .order_by(col(&articles_t::created_at).desc())
+            .limit(20)
+            .offset(0)
+            .collect<pending_article_list>();
+
+    std::string json = make_data(std::move(list));
+    if (json.empty()) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  void handle_review_article(coro_http_request &req, coro_http_response &resp) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      resp.set_status_and_content(status_type::bad_request,
+                                  "invalid request parameter");
+      return;
+    }
+
+    review_opinion op{};
+    std::error_code ec;
+    iguana::from_json(op, body, ec);
+    if (ec) {
+      resp.set_status_and_content(status_type::bad_request,
+                                  "invalid request parameter");
+      return;
+    }
+
+    if (op.review_status != "accepted" && op.review_status != "rejected") {
+      resp.set_status_and_content(status_type::bad_request,
+                                  "invalid request parameter");
+      return;
+    }
+
+    auto &db_pool = connection_pool<dbng<mysql>>::instance();
+    auto conn = db_pool.get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    auto vec = conn->select(col(&users_t::id))
+                   .from<users_t>()
+                   .where(col(&users_t::user_name).param() &&
+                          col(&users_t::role) == "admin")
+                   .collect(op.reviewer_name);
+    if (vec.empty()) {
+      resp.set_status_and_content(status_type::bad_request,
+                                  "invalid request parameter");
+      return;
+    }
+
+    auto id = std::get<0>(vec.front());
+
+    articles_t article{};
+    article.reviewer_id = id;
+    article.review_date = get_timestamp_milliseconds();
+    article.review_status = op.review_status;
+
+    std::string slug = "slug='";
+    slug.append(op.slug).append("'");
+    int n =
+        conn->update_some<&articles_t::reviewer_id, &articles_t::review_date,
+                          &articles_t::review_status>(article, slug);
+    if (n == 0) {
+      set_server_internel_error(resp);
+      return;
+    }
+    std::string json = make_data(std::string("审核成功"));
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };
