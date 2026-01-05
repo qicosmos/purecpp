@@ -9,21 +9,6 @@
 using namespace cinatra;
 
 namespace purecpp {
-// 生成随机token的函数
-inline std::string generate_reset_token() {
-  // 使用当前时间和随机数生成token
-  auto now = std::chrono::system_clock::now();
-  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-  auto value = now_ms.time_since_epoch().count();
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(0, 999999);
-
-  std::stringstream ss;
-  ss << std::hex << value << std::hex << dis(gen);
-  return ss.str();
-}
 
 class user_password_t {
 public:
@@ -99,18 +84,17 @@ public:
 
     users_t user = users[0];
 
-    // 生成重置token
-    std::string token = generate_reset_token();
+    // 使用统一的token生成函数
+    std::string token = generate_token(TokenType::RESET_PASSWORD);
 
-    // 设置token有效期为1小时
-    uint64_t now = get_timestamp_milliseconds();
-    uint64_t expires_at = now + 3600000; // 1小时 = 3600000毫秒
+    // 获取重置token的过期时间
+    uint64_t expires_at = get_token_expires_at(TokenType::RESET_PASSWORD);
 
     // 保存token到数据库
     users_token_t reset_token{.id = 0,
                               .user_id = user.id,
                               .token_type = TokenType::RESET_PASSWORD,
-                              .created_at = now,
+                              .created_at = get_timestamp_milliseconds(),
                               .expires_at = expires_at};
 
     std::copy(token.begin(), token.end(), reset_token.token.begin());

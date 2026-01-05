@@ -6,31 +6,6 @@ namespace purecpp {
 // 邮箱验证工具类
 class email_verify_t {
 public:
-  // 生成随机token
-  static std::string generate_token() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 15);
-
-    std::string token;
-    token.reserve(32);
-
-    for (int i = 0; i < 32; i++) {
-      token += "0123456789abcdef"[dis(gen)];
-    }
-
-    return token;
-  }
-
-  // 获取token过期时间（24小时后）
-  static uint64_t get_token_expires_at() {
-    auto now = std::chrono::system_clock::now();
-    auto expires = now + std::chrono::hours(24);
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-               expires.time_since_epoch())
-        .count();
-  }
-
   // 创建邮箱验证token并存储到数据库
   static std::pair<bool, std::string>
   create_verify_token(uint64_t user_id, const std::string &email) {
@@ -45,14 +20,16 @@ public:
     conn->delete_records_s<users_token_t>("user_id = ? and token_type = ?",
                                           user_id, TokenType::VERIFY_EMAIL);
 
+    // 使用统一的token生成函数
+    std::string token = generate_token(TokenType::VERIFY_EMAIL);
+
     // 插入新的token记录
-    std::string token = generate_token();
     users_token_t token_record{
         .id = 0,
         .user_id = user_id,
         .token_type = TokenType::VERIFY_EMAIL,
         .created_at = get_timestamp_milliseconds(),
-        .expires_at = get_token_expires_at(),
+        .expires_at = get_token_expires_at(TokenType::VERIFY_EMAIL),
     };
     std::copy(token.begin(), token.end(), token_record.token.data());
 

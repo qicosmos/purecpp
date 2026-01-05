@@ -50,6 +50,101 @@ inline uint64_t get_timestamp_milliseconds() {
   return static_cast<uint64_t>(milliseconds.count());
 }
 
+// 改进的安全Token生成函数
+inline std::string generate_token(TokenType token_type) {
+  // 使用64位随机数生成器，提高熵值
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  std::uniform_int_distribution<uint64_t> dis(0, UINT64_MAX);
+
+  // 生成128位（16字节）随机数据，确保安全性
+  uint64_t random1 = dis(gen);
+  uint64_t random2 = dis(gen);
+
+  // 构建原始token字节序列
+  std::string raw_token;
+  raw_token.reserve(16);
+
+  // 编码random1（8字节）
+  for (int i = 0; i < 8; i++) {
+    raw_token += static_cast<char>((random1 >> (i * 8)) & 0xFF);
+  }
+
+  // 编码random2（8字节）
+  for (int i = 0; i < 8; i++) {
+    raw_token += static_cast<char>((random2 >> (i * 8)) & 0xFF);
+  }
+
+  // Base64 URL安全编码
+  std::string encoded = cinatra::base64_encode(raw_token);
+
+  // 转换为URL安全格式（RFC 4648）
+  std::replace(encoded.begin(), encoded.end(), '+', '-');
+  std::replace(encoded.begin(), encoded.end(), '/', '_');
+  // 移除填充符
+  while (!encoded.empty() && encoded.back() == '=') {
+    encoded.pop_back();
+  }
+
+  // 获取毫秒级时间戳（用于防止批量生成碰撞）
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+  uint64_t timestamp = now_ms.time_since_epoch().count();
+
+  // 添加类型前缀和时间戳后缀
+  std::stringstream ss;
+  switch (token_type) {
+  case TokenType::RESET_PASSWORD:
+    ss << "rst_";
+    break;
+  case TokenType::VERIFY_EMAIL:
+    ss << "vrf_";
+    break;
+  case TokenType::REFRESH_TOKEN:
+    ss << "rfr_";
+    break;
+  default:
+    ss << "tok_";
+    break;
+  }
+
+  // 添加随机数据和时间戳（后8位十六进制，约支持到 year 10889）
+  ss << encoded << "_" << std::setw(8) << std::setfill('0') << std::hex
+     << (timestamp & 0xFFFFFFFF);
+
+  return ss.str();
+}
+
+// 获取Token过期时间
+inline uint64_t get_token_expires_at(TokenType token_type) {
+  auto now = std::chrono::system_clock::now();
+  std::chrono::milliseconds duration;
+
+  switch (token_type) {
+  case TokenType::VERIFY_EMAIL:
+    // 邮箱验证token：24小时
+    duration = std::chrono::hours(24);
+    break;
+  case TokenType::RESET_PASSWORD:
+    // 重置密码token：1小时
+    duration = std::chrono::hours(1);
+    break;
+  case TokenType::REFRESH_TOKEN:
+    // 刷新token：7天
+    duration = std::chrono::hours(24 * 7);
+    break;
+  default:
+    // 默认1小时
+    duration = std::chrono::hours(1);
+    break;
+  }
+
+  auto expires = now + duration;
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             expires.time_since_epoch())
+      .count();
+}
+
 // 通用邮件发送函数
 inline async_simple::coro::Lazy<bool> send_email(const std::string &to_email,
                                                  const std::string &subject,
@@ -155,7 +250,6 @@ send_reset_email(const std::string &email, const std::string &token) {
     email_content += "<p>此链接有效期为1小时。</p>";
     email_content += "<p>感谢您使用PureCpp！</p>";
     email_content += "</body></html>";
-
     // 发送真实邮件
     bool r = co_await send_email(email, "PureCpp密码重置", email_content);
     co_return r;
