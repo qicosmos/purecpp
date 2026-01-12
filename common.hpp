@@ -12,6 +12,21 @@
 using namespace cinatra;
 
 namespace purecpp {
+inline uint64_t get_timestamp_milliseconds() {
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+  return static_cast<uint64_t>(milliseconds.count());
+}
+
+inline uint64_t get_timestamp_seconds() {
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+  return static_cast<uint64_t>(seconds.count());
+}
+
 inline std::string make_error(std::string_view err_msg) {
   rest_response<std::string_view> data{false, std::string(err_msg)};
   std::string json;
@@ -24,6 +39,9 @@ template <typename T> inline std::string make_data(T t, std::string msg = "") {
   data.success = true;
   data.message = std::move(msg);
   data.data = std::move(t);
+  // 设置当前时间戳
+  auto now = get_timestamp_milliseconds();
+  data.timestamp = std::to_string(now);
 
   std::string json;
   try {
@@ -40,14 +58,6 @@ inline void set_server_internel_error(auto &resp) {
   resp.set_status_and_content(
       status_type::internal_server_error,
       make_error(to_http_status_string(status_type::internal_server_error)));
-}
-
-inline uint64_t get_timestamp_milliseconds() {
-  auto now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto milliseconds =
-      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  return static_cast<uint64_t>(milliseconds.count());
 }
 
 // 改进的安全Token生成函数
