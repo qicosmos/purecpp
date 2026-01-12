@@ -302,6 +302,9 @@ struct check_token {
       case TokenValidationResult::InvalidBase64:
         error_msg = PURECPP_ERROR_TOKEN_INVALID;
         break;
+      case TokenValidationResult::InvalidSignature:
+        error_msg = PURECPP_ERROR_TOKEN_INVALID;
+        break;
       case TokenValidationResult::Expired:
         error_msg = PURECPP_ERROR_TOKEN_EXPIRED;
         break;
@@ -681,6 +684,37 @@ struct rate_limiter_aspect {
     if (!check_rate_limit(req, res)) {
       return false; // 请求被限流，停止处理
     }
+    return true;
+  }
+};
+
+// 刷新token请求校验
+struct check_refresh_token_input {
+  bool before(coro_http_request &req, coro_http_response &res) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("刷新令牌信息不能为空"));
+      return false;
+    }
+
+    refresh_token_request info{};
+    std::error_code ec;
+    iguana::from_json(info, body, ec);
+    if (ec) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("刷新令牌信息格式错误"));
+      return false;
+    }
+
+    // 校验refresh token不能为空
+    if (info.refresh_token.empty()) {
+      res.set_status_and_content(status_type::bad_request,
+                                 make_error("刷新令牌不能为空"));
+      return false;
+    }
+
+    req.set_user_data(info);
     return true;
   }
 };

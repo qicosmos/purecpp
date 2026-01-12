@@ -12,6 +12,21 @@
 using namespace cinatra;
 
 namespace purecpp {
+inline uint64_t get_timestamp_milliseconds() {
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+  return static_cast<uint64_t>(milliseconds.count());
+}
+
+inline uint64_t get_timestamp_seconds() {
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+  return static_cast<uint64_t>(seconds.count());
+}
+
 inline std::string make_error(std::string_view err_msg) {
   rest_response<std::string_view> data{false, std::string(err_msg)};
   std::string json;
@@ -24,6 +39,9 @@ template <typename T> inline std::string make_data(T t, std::string msg = "") {
   data.success = true;
   data.message = std::move(msg);
   data.data = std::move(t);
+  // 设置当前时间戳
+  auto now = get_timestamp_milliseconds();
+  data.timestamp = std::to_string(now);
 
   std::string json;
   try {
@@ -40,14 +58,6 @@ inline void set_server_internel_error(auto &resp) {
   resp.set_status_and_content(
       status_type::internal_server_error,
       make_error(to_http_status_string(status_type::internal_server_error)));
-}
-
-inline uint64_t get_timestamp_milliseconds() {
-  auto now = std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  auto milliseconds =
-      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  return static_cast<uint64_t>(milliseconds.count());
 }
 
 // 改进的安全Token生成函数
@@ -258,4 +268,41 @@ send_reset_email(const std::string &email, const std::string &token) {
     co_return false;
   }
 }
+
+/**
+ * @brief 获取客户端IP地址
+ */
+inline std::string get_client_ip(coro_http_request &req) {
+  // 优先从X-Forwarded-For获取（反向代理场景）
+  auto forward_for = req.get_header_value("X-Forwarded-For");
+  if (!forward_for.empty()) {
+    // X-Forwarded-For可能包含多个IP，取第一个
+    auto comma_pos = forward_for.find(',');
+    if (comma_pos != std::string::npos) {
+      return std::string(forward_for.substr(0, comma_pos));
+    }
+    return std::string(forward_for);
+  }
+
+  // 其次从X-Real-IP获取
+  auto real_ip = req.get_header_value("X-Real-IP");
+  if (!real_ip.empty()) {
+    return std::string(real_ip);
+  }
+
+  // 从conn的连接中获取
+  auto conn_ip = req.get_conn()->remote_address();
+  if (!conn_ip.empty()) {
+    // 获取:冒号前面的IP地址
+    auto colon_pos = conn_ip.find(':');
+    if (colon_pos != std::string::npos) {
+      return std::string(conn_ip.substr(0, colon_pos));
+    }
+    return std::string(conn_ip);
+  }
+
+  // 如果都无法获取，返回默认值
+  return "unknown";
+}
+
 } // namespace purecpp
