@@ -250,7 +250,7 @@
                 <!-- 评论列表 -->
                 <div class="comments-list" style="margin-top: 1rem;">
                     <template
-                            x-for="comment in comments.filter(c => c.parent_id === 0).sort((a, b) => b.created_at - a.created_at)"
+                            x-for="comment in comments.filter(c => c.parent_comment_id === 0).sort((a, b) => b.created_at - a.created_at)"
                             :key="comment.comment_id">
                         <div class="comment-item"
                              style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -297,7 +297,7 @@
                                         <div class="reply-title"
                                              style="font-size: 0.75rem; color: var(--muted-color); margin-bottom: 0.3rem;">
                                             <span x-text="child.author_name"></span> 回复 <span
-                                                x-text="comment.author_name"></span>
+                                                x-text="child.parent_user_name"></span>
                                         </div>
 
                                         <div class="comment-content"
@@ -659,13 +659,13 @@
                     // 查找所有直接或间接属于该一级评论的二级评论
                     const getParentComment = (commentId) => {
                         const comment = this.comments.find(c => c.comment_id === commentId);
-                        return comment ? (comment.parent_id === 0 ? comment : getParentComment(comment.parent_id)) : null;
+                        return comment ? (comment.parent_comment_id === 0 ? comment : getParentComment(comment.parent_comment_id)) : null;
                     };
 
                     // 筛选出所有属于当前一级评论的二级评论
                     const childComments = this.comments.filter(comment => {
-                        if (comment.parent_id === 0) return false; // 排除一级评论
-                        const rootComment = getParentComment(comment.parent_id);
+                        if (comment.parent_comment_id === 0) return false; // 排除一级评论
+                        const rootComment = getParentComment(comment.parent_comment_id);
                         return rootComment && rootComment.comment_id === parentId;
                     });
 

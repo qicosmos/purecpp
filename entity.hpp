@@ -141,8 +141,10 @@ struct article_comments_t {
   uint64_t article_id; // 外键
   uint64_t user_id;    // 外键
   std::string content;
-  uint64_t parent_id;      // 指向父评论
-  std::array<char, 16> ip; // 评论者IP地址
+  uint64_t parent_comment_id; // 指向父评论
+  uint64_t parent_user_id;
+  std::array<char, 21> parent_user_name; // unique, not null
+  std::array<char, 16> ip;               // 评论者IP地址
   uint64_t created_at;
   uint64_t updated_at;
 };

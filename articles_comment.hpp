@@ -32,7 +32,7 @@ public:
                            .collect(request.slug);
     if (article_vec.empty()) {
       resp.set_status_and_content(status_type::bad_request,
-                                  make_error("article not found"));
+                                  make_error("评论文章未找到"));
       return;
     }
 
@@ -45,7 +45,8 @@ public:
                      col(&article_comments_t::user_id),
                      col(&users_t::user_name),
                      col(&article_comments_t::content),
-                     col(&article_comments_t::parent_id),
+                     col(&article_comments_t::parent_comment_id),
+                     col(&article_comments_t::parent_user_name),
                      col(&article_comments_t::ip),
                      col(&article_comments_t::created_at),
                      col(&article_comments_t::updated_at))
@@ -53,7 +54,8 @@ public:
             .inner_join(col(&article_comments_t::user_id), col(&users_t::id))
             .where(col(&article_comments_t::article_id) == article_id)
             .order_by(col(&article_comments_t::created_at).desc())
-            .collect<comment_response>();
+            .collect<get_comments_response>();
+    // 对引用的评论进行用户信息加工
 
     std::string json =
         make_data(comments, std::string("Comments retrieved successfully"));
@@ -80,7 +82,7 @@ public:
                         .collect(request.author_name);
     if (user_vec.empty()) {
       resp.set_status_and_content(status_type::bad_request,
-                                  make_error("invalid user"));
+                                  make_error("无效用户信息"));
       return;
     }
 
@@ -93,10 +95,9 @@ public:
                            .collect(request.slug);
     if (article_vec.empty()) {
       resp.set_status_and_content(status_type::bad_request,
-                                  make_error("article not found"));
+                                  make_error("评论文章未找到"));
       return;
     }
-
     uint64_t article_id = std::get<0>(article_vec.front());
 
     // 获取客户端IP地址
@@ -107,7 +108,8 @@ public:
                                    .article_id = article_id,
                                    .user_id = user_id,
                                    .content = request.content,
-                                   .parent_id = request.parent_id,
+                                   .parent_comment_id =
+                                       request.parent_comment_id,
                                    .ip = {},
                                    .created_at = now,
                                    .updated_at = now};
@@ -115,6 +117,35 @@ public:
     std::copy_n(client_ip.data(),
                 std::min(client_ip.size(), new_comment.ip.size()),
                 new_comment.ip.data());
+    // 检查parent_comment_id评论是否存在
+    if (request.parent_comment_id > 0) {
+      auto comments =
+          conn->select(ormpp::all)
+              .from<article_comments_t>()
+              .where(col(&article_comments_t::comment_id).param())
+              .collect<article_comments_t>(request.parent_comment_id);
+      if (comments.empty()) {
+        resp.set_status_and_content(status_type::bad_request,
+                                    make_error("父级评论未找到"));
+        return;
+      }
+      auto &parent_comment = comments.front();
+      new_comment.parent_user_id = parent_comment.user_id;
+
+      // 查询parent用户信息
+      auto user_vec = conn->select(col(&users_t::id), col(&users_t::user_name))
+                          .from<users_t>()
+                          .where(col(&users_t::id).param())
+                          .collect<users_t>(parent_comment.user_id);
+      if (user_vec.empty()) {
+        resp.set_status_and_content(status_type::bad_request,
+                                    make_error("无效用户信息"));
+        return;
+      }
+      auto &parent_user = user_vec.front();
+      std::copy(parent_user.user_name.begin(), parent_user.user_name.end(),
+                new_comment.parent_user_name.begin());
+    }
     // 插入评论
     auto comment_id = conn->get_insert_id_after_insert(new_comment);
     if (comment_id <= 0) {
@@ -134,18 +165,19 @@ public:
     std::string condition = "article_id=" + std::to_string(article_id);
     conn->update_some<&articles_t::comments_count>(update_article, condition);
     // 返回新评论信息
-    comment_response response{
+    add_comment_response response{
         .comment_id = new_comment.comment_id,
         .article_id = new_comment.article_id,
         .user_id = new_comment.user_id,
         .author_name = request.author_name,
         .content = new_comment.content,
-        .parent_id = new_comment.parent_id,
-        .ip = std::string(new_comment.ip.begin(), new_comment.ip.end()),
+        .parent_comment_id = new_comment.parent_comment_id,
+        .parent_user_name = new_comment.parent_user_name.data(),
+        .ip = new_comment.ip.data(),
         .created_at = new_comment.created_at,
         .updated_at = new_comment.updated_at};
 
-    std::string json = make_data(response);
+    std::string json = make_data(response, "新增评论成功");
     if (json.empty()) {
       set_server_internel_error(resp);
       return;
