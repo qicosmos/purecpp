@@ -232,20 +232,32 @@
                      style="margin-bottom: 1rem; text-align: center;">
                 </div>
 
+
+                <!-- 头像上传 -->
+                <div class="form-group">
+                    <label for="avatar-upload">头像</label>
+                    <div style="margin-bottom: 0.5rem; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <!-- 头像预览 -->
+                            <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border-color); cursor: pointer;"
+                                 @click="document.getElementById('avatar-upload').click()" title="修改我的头像">
+                                <img :src="previewAvatar"
+                                     alt="修改我的头像"
+                                     style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                            </div>
+                            <!-- 隐藏的文件输入 -->
+                            <input type="file" id="avatar-upload" accept="image/*" style="display: none;"
+                                   @change="handleFileUpload">
+                        </div>
+                    </div>
+
+                </div>
                 <!-- 个人简介 -->
                 <div class="form-group">
                     <label for="bio">个人简介</label>
                     <textarea id="bio" x-model="profileData.bio" class="form-control"
                               placeholder="介绍一下自己..."></textarea>
                     <div x-show="errors.bio" x-text="errors.bio" class="error-message"></div>
-                </div>
-
-                <!-- 头像URL -->
-                <div class="form-group">
-                    <label for="avatar">头像URL</label>
-                    <input type="url" id="avatar" x-model="profileData.avatar" class="form-control"
-                           placeholder="https://example.com/avatar.jpg">
-                    <div x-show="errors.avatar" x-text="errors.avatar" class="error-message"></div>
                 </div>
 
                 <!-- 所在地 -->
@@ -302,6 +314,8 @@
             message: '',
             messageColor: '',
             loading: false,
+            previewAvatar: '',
+            selectedFile: null,
 
             // 初始化函数
             init() {
@@ -329,6 +343,9 @@
                         this.profileData.location = response.data.location || '';
                         this.profileData.skills = response.data.skills || '';
 
+                        // 设置头像预览
+                        this.previewAvatar = this.profileData.avatar;
+
                         // 保存原始数据，用于重置
                         this.originalData = {...this.profileData};
                     } else {
@@ -340,6 +357,36 @@
                 }
             },
 
+            // 处理文件上传
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // 检查文件类型
+                if (!file.type.startsWith('image/')) {
+                    this.showMessage('请选择图片文件', true);
+                    return;
+                }
+
+                // 检查文件大小（限制为2MB）
+                if (file.size > 512 * 1024) {
+                    this.showMessage('图片大小不能超过512KB', true);
+                    return;
+                }
+
+                // 保存选中的文件
+                this.selectedFile = file;
+
+                // 创建预览URL
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.previewAvatar = e.target.result;
+                    // 清除手动输入的URL，因为使用了本地文件
+                    this.profileData.avatar = '';
+                };
+                reader.readAsDataURL(file);
+            },
+
             // 表单验证
             validateForm() {
                 this.errors = {};
@@ -349,15 +396,6 @@
                 if (this.profileData.bio && this.profileData.bio.length > 500) {
                     this.errors.bio = '个人简介不能超过500个字符';
                     isValid = false;
-                }
-
-                // 验证头像URL（可选，但必须是有效的URL格式）
-                if (this.profileData.avatar) {
-                    const urlPattern = /^https?:\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?$/;
-                    if (!urlPattern.test(this.profileData.avatar)) {
-                        this.errors.avatar = '请输入有效的URL格式';
-                        isValid = false;
-                    }
                 }
 
                 // 验证所在地（可选，但有长度限制）
@@ -380,6 +418,7 @@
                 this.message = message;
                 this.messageColor = isError ? '#ef4444' : '#10b981';
             },
+
 
             // 更新个人资料
             async handleUpdateProfile() {
@@ -406,12 +445,30 @@
                 try {
                     // 添加用户ID
                     this.profileData.user_id = userInfo.id;
+
+                    // 处理图片上传
+                    if (this.selectedFile) {
+                        try {
+                            const uploadResult = await apiService.uploadAvatar(this.profileData.user_id, this.selectedFile);
+                            if (uploadResult.success && uploadResult.data) {
+                                this.profileData.avatar = uploadResult.data.url;
+                            } else {
+                                this.showMessage(uploadResult.message || '图片上传失败', true);
+                            }
+                        } catch (error) {
+                            console.error('图片上传失败:', error);
+                            this.showMessage('图片上传失败', true);
+                        }
+                    }
+
                     const response = await apiService.updateUserProfile(this.profileData);
 
                     if (response.success) {
                         this.showMessage('个人资料更新成功！');
                         // 更新原始数据
                         this.originalData = {...this.profileData};
+                        // 清除选中的文件
+                        this.selectedFile = null;
                     } else {
                         this.showMessage(response.message || '更新失败', true);
                     }

@@ -43,6 +43,7 @@ struct login_resp_data {
   uint64_t access_token_lifetime; // 访问令牌有效期，单位：秒
   UserTitle title;
   std::string role;
+  std::optional<std::string> avatar; // 头像URL
   uint64_t experience;
   UserLevel level;
 };
@@ -139,5 +140,12 @@ struct user_profile_response {
   uint64_t experience;
   UserLevel level;
   std::string status;
+};
+
+// 用户头像上传请求结构体
+struct avatar_upload_request {
+  uint64_t user_id;
+  std::string avatar_data;
+  std::string filename;
 };
 } // namespace purecpp
