@@ -305,9 +305,11 @@ public:
     conn->begin();
 
     // 更新用户经验值和等级
-    user.experience = new_experience;
-    user.level = new_level;
-    if (conn->update<users_t>(user) != 1) {
+    users_t update_user;
+    update_user.experience = new_experience;
+    update_user.level = new_level;
+    if (conn->update_some<&users_t::experience, &users_t::level>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       conn->rollback();
       return false;
     }
@@ -375,9 +377,11 @@ public:
     conn->begin();
 
     // 更新用户经验值和等级
-    user.experience = new_experience;
-    user.level = new_level;
-    if (conn->update<users_t>(user) != 1) {
+    users_t update_user;
+    update_user.experience = new_experience;
+    update_user.level = new_level;
+    if (conn->update_some<&users_t::experience, &users_t::level>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       conn->rollback();
       return false;
     }
@@ -556,7 +560,7 @@ public:
 struct user_level_info {
   uint64_t user_id;
   std::string username;
-  UserLevel level;
+  int level; // 使用int代替枚举，确保前端兼容性
   uint64_t experience;
   int level_progress;
   uint64_t next_level_required;
@@ -564,7 +568,7 @@ struct user_level_info {
 
 struct experience_transaction_info {
   uint64_t id;
-  ExperienceChangeType change_type;
+  int change_type; // 使用int代替枚举，确保前端兼容性
   int64_t experience_change;
   uint64_t balance_after_experience;
   std::optional<uint64_t> related_id;
@@ -618,7 +622,7 @@ public:
     user_level_info resp_data{.user_id = user_info.id,
                               .username =
                                   std::string(user_info.user_name.data()),
-                              .level = user_info.level,
+                              .level = static_cast<int>(user_info.level),
                               .experience = user_info.experience,
                               .level_progress = level_progress,
                               .next_level_required = next_level_required};
@@ -687,7 +691,7 @@ public:
     for (const auto &t : transactions) {
       transaction_infos.push_back(
           {.id = t.id,
-           .change_type = t.change_type,
+           .change_type = static_cast<int>(t.change_type),
            .experience_change = t.experience_change,
            .balance_after_experience = t.balance_after_experience,
            .related_id = t.related_id,
