@@ -85,8 +85,11 @@ bool init_db() {
 
   auto conn = pool.get();
   conn->create_datatable<users_t>(
-      ormpp_auto_key{"id"}, ormpp_unique{{"user_name"}},
-      ormpp_unique{{"email"}},
+      ormpp_key{"id"}, ormpp_unique{{"user_name"}}, ormpp_unique{{"email"}},
+      ormpp_not_null{{"user_name", "email", "pwd_hash"}});
+
+  conn->create_datatable<users_tmp_t>(
+      ormpp_key{"id"}, ormpp_unique{{"user_name"}}, ormpp_unique{{"email"}},
       ormpp_not_null{{"user_name", "email", "pwd_hash"}});
 
   conn->create_datatable<tags_t>(ormpp_auto_key{"tag_id"},
@@ -211,9 +214,9 @@ int main() {
   user_register_t usr_reg{};
   server.set_http_handler<POST>(
       "/api/v1/register", &user_register_t::handle_register, usr_reg,
-      check_register_input{}, check_cpp_answer{}, check_user_name{},
-      check_email{}, check_password{}, rate_limiter_aspect{},
-      experience_reward_aspect{});
+      log_request_response{}, check_register_input{}, check_cpp_answer{},
+      check_user_name{}, check_email{}, check_password{}, check_user_exists{},
+      rate_limiter_aspect{}, experience_reward_aspect{});
 
   // 邮箱验证相关路由
   server.set_http_handler<POST>(
@@ -222,7 +225,9 @@ int main() {
 
   server.set_http_handler<POST>("/api/v1/resend_verify_email",
                                 &user_register_t::handle_resend_verify_email,
-                                usr_reg, log_request_response{});
+                                usr_reg, log_request_response{},
+                                rate_limiter_aspect{},
+                                check_resend_verification_input{});
 
   user_login_t usr_login{};
   server.set_http_handler<POST>(
@@ -248,7 +253,8 @@ int main() {
   // 添加忘记密码和重置密码的路由
   server.set_http_handler<POST>(
       "/api/v1/forgot_password", &user_password_t::handle_forgot_password,
-      usr_password, log_request_response{}, check_forgot_password_input{});
+      usr_password, log_request_response{}, check_forgot_password_input{},
+      rate_limiter_aspect{});
 
   server.set_http_handler<POST>(
       "/api/v1/reset_password", &user_password_t::handle_reset_password,

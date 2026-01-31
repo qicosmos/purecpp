@@ -82,13 +82,16 @@ public:
     }
 
     // 验证密码
-    if (user.pwd_hash != purecpp::sha256_simple(info.password)) {
+    if (user.pwd_hash != purecpp::password_encrypt(info.password)) {
       // 密码错误，更新失败次数和最后失败时间
-      user.login_attempts++;
-      user.last_failed_login = current_time;
+      users_t update_user;
+      update_user.login_attempts = user.login_attempts + 1;
+      update_user.last_failed_login = current_time;
 
       // 保存更新到数据库
-      if (conn->update<users_t>(user) != 1) {
+      if (conn->update_some<&users_t::login_attempts,
+                            &users_t::last_failed_login>(
+              update_user, "id=" + std::to_string(user.id)) != 1) {
         resp.set_status_and_content(status_type::bad_request,
                                     make_error(PURECPP_ERROR_LOGIN_FAILED));
         return;
@@ -119,9 +122,14 @@ public:
     token_response token_resp =
         generate_jwt_token(user.id, user_name_str, email_str);
 
-    // 更新最后活跃时间
-    user.last_active_at = get_timestamp_milliseconds();
-    if (conn->update<users_t>(user) != 1) {
+    // 登录成功，更新状态
+    users_t update_user;
+    update_user.login_attempts = 0;
+    update_user.status = std::string(STATUS_OF_ONLINE);
+    update_user.last_active_at = get_timestamp_milliseconds();
+    if (conn->update_some<&users_t::login_attempts, &users_t::status,
+                          &users_t::last_active_at>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       // 更新失败报错
       resp.set_status_and_content(status_type::bad_request,
                                   make_error(PURECPP_ERROR_LOGIN_FAILED));
@@ -241,8 +249,10 @@ public:
 
     // 更新用户状态为登出
     auto user = users_by_id[0];
-    user.status = std::string(STATUS_OF_OFFLINE);
-    if (conn->update<users_t>(user) != 1) {
+    users_t update_user;
+    update_user.status = std::string(STATUS_OF_OFFLINE);
+    if (conn->update_some<&users_t::status>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       resp.set_status_and_content(cinatra::status_type::bad_request,
                                   make_error(PURECPP_ERROR_LOGOUT_FAILED));
       return;

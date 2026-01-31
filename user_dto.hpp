@@ -20,10 +20,10 @@ struct user_resp_data {
   std::string username;
   std::string email;
   int is_verifyed;
-  UserTitle title;
+  int title;
   std::string role;
   uint64_t experience;
-  UserLevel level;
+  int level;
 };
 
 // 登录相关结构体

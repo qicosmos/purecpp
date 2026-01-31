@@ -46,16 +46,18 @@ public:
     users_t user = users[0];
 
     // 验证旧密码
-    if (user.pwd_hash != sha256_simple(info.old_password)) {
+    if (user.pwd_hash != password_encrypt(info.old_password)) {
       resp.set_status_and_content(status_type::bad_request,
                                   make_error("旧密码错误"));
       return;
     }
 
     // 更新新密码
-    std::string pwd_sha = sha256_simple(info.new_password);
-    user.pwd_hash = pwd_sha;
-    if (conn->update<users_t>(user) != 1) {
+    std::string pwd_sha = password_encrypt(info.new_password);
+    users_t update_user;
+    update_user.pwd_hash = pwd_sha;
+    if (conn->update_some<&users_t::pwd_hash>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       resp.set_status_and_content(status_type::bad_request,
                                   make_error("修改密码失败"));
       return;
@@ -187,11 +189,14 @@ public:
     users_t user = users[0];
 
     // 更新用户密码
-    std::string pwd_hash = purecpp::sha256_simple(info.new_password);
-    user.pwd_hash = pwd_hash;
-    user.login_attempts = 0;
-    user.last_failed_login = 0;
-    if (conn->update<users_t>(user) != 1) {
+    std::string pwd_hash = purecpp::password_encrypt(info.new_password);
+    users_t update_user;
+    update_user.pwd_hash = pwd_hash;
+    update_user.login_attempts = 0;
+    update_user.last_failed_login = 0;
+    if (conn->update_some<&users_t::pwd_hash, &users_t::login_attempts,
+                          &users_t::last_failed_login>(
+            update_user, "id=" + std::to_string(user.id)) != 1) {
       auto err = conn->get_last_error();
       CINATRA_LOG_ERROR << err;
       resp.set_status_and_content(status_type::internal_server_error,
