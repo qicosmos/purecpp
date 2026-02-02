@@ -276,9 +276,9 @@ int main() {
   server.set_http_handler<POST>("/api/v1/edit_article", &articles::edit_article,
                                 article, log_request_response{}, check_token{},
                                 check_edit_article{});
-  server.set_http_handler<GET>("/api/v1/get_pending_articles",
-                               &articles::get_pending_articles, article,
-                               log_request_response{}, check_token{});
+  server.set_http_handler<POST>("/api/v1/get_pending_articles",
+                                &articles::get_pending_articles, article,
+                                log_request_response{}, check_token{});
   server.set_http_handler<POST>("/api/v1/review_pending_article",
                                 &articles::handle_review_article, article,
                                 log_request_response{}, check_token{});

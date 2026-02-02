@@ -381,10 +381,13 @@ class APIService {
     }
 
     // 获取文章列表
-    async getArticles(page = 1, perPage = 10, tagId = 0, userId = 0) {
+    async getArticles(page = 1, perPage = 10, tagId = 0, userId = 0, search = '') {
         const requestData = {current_page: page, per_page: perPage, tag_id: tagId, user_id: userId};
         if (userId > 0) {
             requestData.user_id = userId;
+        }
+        if (search) {
+            requestData.search = search;
         }
         return this.request('/api/v1/get_articles', {
             method: 'POST',
@@ -416,9 +419,10 @@ class APIService {
     }
 
     // 获取待审核文章
-    async getPendingArticles() {
+    async getPendingArticles(search = '') {
         return this.request('/api/v1/get_pending_articles', {
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify({search})
         });
     }
 

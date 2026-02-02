@@ -20,6 +20,7 @@ struct article_page_request {
   int user_id = 0; // 0表示所有用户
   int current_page;
   int per_page;
+  std::string search; // 搜索关键词
 };
 
 struct article_list {
@@ -323,6 +324,19 @@ public:
       where_cond =
           where_cond && (col(&articles_t::author_id) == page_req.user_id);
     }
+    // 搜索功能
+    if (!page_req.search.empty()) {
+      std::string search_pattern = "%" + page_req.search + "%";
+      where_cond = where_cond && col(&articles_t::content).like(search_pattern);
+    }
+    // 计算总记录数(根据查询条件)
+    size_t total_count =
+        conn->select(ormpp::count())
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .collect();
+
     auto select_cond =
         conn->select(col(&articles_t::title), col(&articles_t::abstraction),
                      col(&articles_t::slug), col(&users_t::user_name),
@@ -333,15 +347,6 @@ public:
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(where_cond);
-
-    // 计算总记录数(根据查询条件)
-    size_t total_count =
-        conn->select(ormpp::count())
-            .from<articles_t>()
-            .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .where(where_cond)
-            .collect();
-
     size_t limit = per_page;
     size_t offset = (page - 1) * per_page;
     auto list = select_cond.order_by(col(&articles_t::created_at).desc())
@@ -368,6 +373,43 @@ public:
 
     size_t limit = 20; // will update, it's from web front end.
     size_t offset = 0; // will update, it's from web front end.
+    std::string search;
+
+    // 从请求体中获取分页和搜索参数
+    auto body = req.get_body();
+    if (!body.empty()) {
+      article_page_request page_req{};
+      std::error_code ec;
+      iguana::from_json(page_req, body, ec);
+      if (!ec) {
+        if (page_req.per_page > 0 &&
+            page_req.per_page <= 50) { // 限制每页最多50条
+          limit = page_req.per_page;
+        }
+        if (page_req.current_page > 0) {
+          offset = (page_req.current_page - 1) * limit;
+        }
+        search = page_req.search;
+      }
+    }
+
+    // 构建查询条件
+    auto where_cond = col(&articles_t::is_deleted) == 0 &&
+                      col(&articles_t::status) == PENDING_REVIEW.data();
+
+    // 搜索功能
+    if (!search.empty()) {
+      std::string search_pattern = "%" + search + "%";
+      where_cond = where_cond && col(&articles_t::content).like(search_pattern);
+    }
+
+    // 计算总记录数
+    size_t total_count =
+        conn->select(ormpp::count())
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .collect();
 
     auto list =
         conn->select(col(&articles_t::title), col(&articles_t::abstraction),
@@ -378,15 +420,14 @@ public:
                      col(&articles_t::comments_count))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .where(col(&articles_t::is_deleted) == 0 &&
-                   col(&articles_t::status) == PENDING_REVIEW.data())
+            .where(where_cond)
             .order_by(col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
             .collect<pending_article_list>(limit, offset);
 
     std::string json =
-        make_data(std::move(list), "获取待审核文章列表成功", list.size());
+        make_data(std::move(list), "获取待审核文章列表成功", total_count);
     if (json.empty()) {
       set_server_internel_error(resp);
       return;

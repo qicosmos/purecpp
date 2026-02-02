@@ -619,7 +619,8 @@
                 </div>
 
                 <div class="search-box">
-                    <input type="text" placeholder="搜索技术文章、问答...">
+                    <input type="text" placeholder="搜索技术文章、问答..."
+                           onkeyup="if(event.keyCode === 13) performSearch()">
                     <i class="fas fa-search search-icon" onclick="performSearch()"></i>
                 </div>
             </div>
@@ -756,7 +757,11 @@
         function performSearch() {
             const input = document.querySelector('.search-box input');
             const keyword = input.value.trim();
-            keyword ? alert(`搜索关键词：${keyword}（实际项目中替换为搜索接口）`) : alert('请输入搜索关键词');
+            if (keyword) {
+                window.location.href = `articles.html?search=${encodeURIComponent(keyword)}`;
+            } else {
+                alert('请输入搜索关键词');
+            }
         }
     </script>
 </body>
