@@ -12,7 +12,7 @@ struct client_artilce {
   std::string_view title;
   std::string_view excerpt;
   std::string_view content;
-  int tag_id;
+  std::string_view tag_ids;
 };
 
 struct article_page_request {
@@ -28,7 +28,7 @@ struct article_list {
   std::array<char, 8> slug;
   std::array<char, 21> author_name;
   int author_id;
-  std::array<char, 50> tag_name;
+  std::string tag_ids;
   uint64_t created_at;
   uint64_t updated_at;
   uint32_t views_count;
@@ -41,7 +41,7 @@ struct pending_article_list {
   std::string content;
   std::array<char, 8> slug;
   std::array<char, 21> author_name;
-  std::array<char, 50> tag_name;
+  std::string tag_ids;
   uint64_t created_at;
   uint64_t updated_at;
   uint32_t views_count;
@@ -62,7 +62,7 @@ struct article_detail {
   std::string summary;
   std::string content;
   std::array<char, 21> author_name;
-  std::array<char, 50> tag_name;
+  std::string tag_ids;
   uint64_t created_at;
   uint64_t updated_at;
   uint32_t views_count;
@@ -150,9 +150,9 @@ public:
     }
 
     // 验证标签ID
-    if (art.tag_id <= 0) {
+    if (art.tag_ids.empty()) {
       resp.set_status_and_content(status_type::bad_request,
-                                  make_error("无效的标签ID"));
+                                  make_error("请至少选择一个标签"));
       return;
     }
 
@@ -165,7 +165,7 @@ public:
     }
 
     articles_t article{};
-    article.tag_id = art.tag_id;
+    article.tag_ids = art.tag_ids;
     article.title = art.title;
     article.abstraction = art.excerpt;
     article.content = art.content;
@@ -231,13 +231,12 @@ public:
     auto list =
         conn->select(col(&articles_t::title), col(&articles_t::abstraction),
                      col(&articles_t::content), col(&users_t::user_name),
-                     col(&tags_t::name), col(&articles_t::created_at),
+                     col(&articles_t::tag_ids), col(&articles_t::created_at),
                      col(&articles_t::updated_at),
                      col(&articles_t::views_count),
                      col(&articles_t::comments_count))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
             .where(col(&articles_t::slug).param() &&
                    col(&articles_t::is_deleted) == 0)
             .collect<article_detail>(slug);
@@ -261,7 +260,7 @@ public:
     }
 
     articles_t article{};
-    article.tag_id = info.tag_id;
+    article.tag_ids = info.tag_ids;
     article.title = info.title;
     article.abstraction = info.excerpt;
     article.content = info.content;
@@ -271,7 +270,7 @@ public:
     // 使用安全的字符串拼接，避免SQL注入风险
     std::string slug = "slug='";
     slug.append(info.slug).append("'");
-    int n = conn->update_some<&articles_t::tag_id, &articles_t::title,
+    int n = conn->update_some<&articles_t::tag_ids, &articles_t::title,
                               &articles_t::abstraction, &articles_t::content,
                               &articles_t::status, &articles_t::updated_at>(
         article, slug);
@@ -314,8 +313,11 @@ public:
     // 获取文章列表
     auto where_cond = col(&articles_t::is_deleted) == 0 &&
                       col(&articles_t::status) == PUBLISHED.data();
+    // tag_ids字段存储多个标签
     if (page_req.tag_id > 0) {
-      where_cond = where_cond && (col(&articles_t::tag_id) == page_req.tag_id);
+      where_cond = where_cond &&
+                   (col(&articles_t::tag_ids)
+                        .like("%" + std::to_string(page_req.tag_id) + "%"));
     }
     if (page_req.user_id > 0) {
       where_cond =
@@ -324,13 +326,12 @@ public:
     auto select_cond =
         conn->select(col(&articles_t::title), col(&articles_t::abstraction),
                      col(&articles_t::slug), col(&users_t::user_name),
-                     col(&articles_t::author_id), col(&tags_t::name),
+                     col(&articles_t::author_id), col(&articles_t::tag_ids),
                      col(&articles_t::created_at), col(&articles_t::updated_at),
                      col(&articles_t::views_count),
                      col(&articles_t::comments_count))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
             .where(where_cond);
 
     // 计算总记录数(根据查询条件)
@@ -338,7 +339,6 @@ public:
         conn->select(ormpp::count())
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
             .where(where_cond)
             .collect();
 
@@ -372,13 +372,12 @@ public:
     auto list =
         conn->select(col(&articles_t::title), col(&articles_t::abstraction),
                      col(&articles_t::content), col(&articles_t::slug),
-                     col(&users_t::user_name), col(&tags_t::name),
+                     col(&users_t::user_name), col(&articles_t::tag_ids),
                      col(&articles_t::created_at), col(&articles_t::updated_at),
                      col(&articles_t::views_count),
                      col(&articles_t::comments_count))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
-            .inner_join(col(&articles_t::tag_id), col(&tags_t::tag_id))
             .where(col(&articles_t::is_deleted) == 0 &&
                    col(&articles_t::status) == PENDING_REVIEW.data())
             .order_by(col(&articles_t::created_at).desc())
@@ -386,7 +385,8 @@ public:
             .offset(ormpp::token)
             .collect<pending_article_list>(limit, offset);
 
-    std::string json = make_data(std::move(list));
+    std::string json =
+        make_data(std::move(list), "获取待审核文章列表成功", list.size());
     if (json.empty()) {
       set_server_internel_error(resp);
       return;

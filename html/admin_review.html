@@ -179,7 +179,18 @@
                                 <strong style="font-size: 1.2rem;" x-text="article.title"></strong>
                                 <br>
                                 <small>作者: <span x-text="article.author_name"></span> |
-                                    分类: <span x-text="article.tag_name"></span> |
+                                    分类:
+                                    <template x-if="article.tag_ids">
+                                        <template x-for="tagId in article.tag_ids.split('|')" :key="tagId">
+                                            <template x-if="getTagName(tagId)">
+                                                <span style="margin-right: 5px;" x-text="getTagName(tagId)"></span>
+                                            </template>
+                                        </template>
+                                    </template>
+                                    <template x-else>
+                                        <span>-</span>
+                                    </template>
+                                    |
                                     时间: <span x-text="formatDate(article.created_at)"></span></small>
                             </div>
 
@@ -228,6 +239,7 @@
             pendingArticles: [],
             isAdmin: false,
             currentUser: null,
+            tags: [], // 标签列表
 
             async init() {
                 // 1. 权限校验 - 使用apiService获取用户信息
@@ -237,7 +249,18 @@
                 }
 
                 if (this.isAdmin) {
+                    await this.fetchTags();
                     await this.fetchPendingArticles();
+                }
+            },
+
+            async fetchTags() {
+                try {
+                    // 使用apiService获取标签列表
+                    const response = await apiService.getTags();
+                    this.tags = response.data;
+                } catch (error) {
+                    console.error('获取标签失败:', error);
                 }
             },
 
@@ -280,6 +303,12 @@
 
             formatDate(ts) {
                 return new Date(ts).toLocaleString();
+            },
+
+            // 根据标签ID获取标签名称
+            getTagName(tagId) {
+                const tag = this.tags.find(t => t.tag_id == tagId);
+                return tag ? tag.name : '';
             }
         }
     }

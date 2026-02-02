@@ -395,7 +395,7 @@
     <!-- 文章列表主体 -->
     <main class="articles-container">
         <!-- 文章列表 -->
-        <div class="articles-list" x-data="articleComponent()">
+        <div class="articles-list" x-data="articleComponent()" x-init="init()">
             <div class="page-header-area">
                 <div class="title-and-button">
                     <h5 class="page-title">技术文章</h5>
@@ -415,11 +415,16 @@
                         <a :href="'/article.html?slug=' + article.slug" x-text="article.title"></a>
                     </h2>
                     <p class="article-excerpt" x-text="article.summary"></p>
-
                     <!-- 标签列表循环 -->
                     <div class="article-tags">
-                        <a href="#" class="tag" x-text="article.tag_name"
-                           @click.prevent="filterByTag(article.tag_name)"></a>
+                        <template x-if="article.tag_ids">
+                            <template x-for="tagId in article.tag_ids.split('|')" :key="tagId">
+                                <template x-if="getTagName(tagId)">
+                                    <a href="#" class="tag" x-text="getTagName(tagId)"
+                                       @click.prevent="filterByTag(getTagName(tagId))"></a>
+                                </template>
+                            </template>
+                        </template>
                     </div>
 
                     <!-- 元信息绑定 -->
@@ -599,6 +604,12 @@
                 formatDate(timestamp) {
                     if (!timestamp) return '';
                     return formatTimestamp(timestamp);
+                },
+
+                // 根据标签ID获取标签名称
+                getTagName(tagId) {
+                    const tag = this.tags.find(t => t.tag_id == tagId);
+                    return tag ? tag.name : '';
                 },
             }
         }

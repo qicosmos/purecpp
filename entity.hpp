@@ -150,7 +150,7 @@ static std::string_view REJECTED = "rejected";             // 已拒绝
 // 文章相关的表
 struct articles_t {
   uint64_t article_id = 0;
-  int tag_id; // 外键
+  std::string tag_ids; // 多个标签ID，用竖线|分割
   std::string title;
   std::string abstraction; // 摘要
   std::string content;

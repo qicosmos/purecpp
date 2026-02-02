@@ -618,7 +618,7 @@ struct edit_article_info {
   std::string title;
   std::string excerpt; // 摘要
   std::string content;
-  int tag_id;
+  std::string tag_ids;
   std::string username;
 };
 

@@ -400,18 +400,18 @@ class APIService {
     }
 
     // 创建新文章
-    async createArticle(title, excerpt, content, tagId) {
+    async createArticle(title, excerpt, content, tagIds) {
         return this.request('/api/v1/new_article', {
             method: 'POST',
-            body: JSON.stringify({title, excerpt, content, tag_id: tagId})
+            body: JSON.stringify({title, excerpt, content, tag_ids: tagIds})
         });
     }
 
     // 编辑文章
-    async editArticle(slug, title, excerpt, content, tagId, username) {
+    async editArticle(slug, title, excerpt, content, tagIds, username) {
         return this.request('/api/v1/edit_article', {
             method: 'POST',
-            body: JSON.stringify({slug, title, excerpt, content, tag_id: tagId, username})
+            body: JSON.stringify({slug, title, excerpt, content, tag_ids: tagIds, username})
         });
     }
 
