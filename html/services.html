@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区服务 - Purecpp.cn 现代C++社区</title>
+    <meta name="description" content="Purecpp社区服务，包括招聘、内推、项目组队等，为C++开发者提供全方位支持">
+
+    <!-- 本地资源 -->
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <script defer src="script/alpine.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --muted-color: #6b7280;
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --bg-search: #ffffff;
+            --text-main: #333;
+            --text-highlight: var(--primary);
+        }
+
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #121212;
+                --bg-card: #1e1e1e;
+                --bg-search: #2d2d2d;
+                --text-main: #f3f4f6;
+                --text-highlight: #818cf8;
+                --border-color: #374151;
+            }
+        }
+
+        /* 全局样式 */
+        body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航 */
+        .page-header {
+            max-width: 1200px;
+            width: 100%;
+            padding: 1rem 2rem;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo strong {
+            font-size: 18px !important;
+            color: var(--primary) !important;
+        }
+
+        /* 主要内容容器 */
+        .services-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* 页面标题区域 */
+        .page-header-area {
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-highlight);
+        }
+
+        .page-description {
+            color: var(--muted-color);
+            font-size: 0.9rem;
+        }
+
+        /* 服务列表 */
+        .services-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* 服务卡片 */
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .service-description {
+            color: var(--muted-color);
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        /* 服务详情 */
+        .service-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        /* 操作按钮 */
+        .action-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            background: var(--primary-hover);
+            color: white;
+        }
+
+        /* 服务项目列表 */
+        .service-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .service-item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .service-item-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-item-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .service-item-info {
+            color: var(--muted-color);
+            line-height: 1.5;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .services-container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .service-card {
+                padding: 1rem;
+            }
+
+            .service-title {
+                font-size: 1.2rem;
+            }
+
+            .service-details {
+                font-size: 0.8rem;
+            }
+
+            .service-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 隐藏类：用于默认隐藏和JS控制 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 调整 page-title 避免其 margin 干扰 Flex 布局 */
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            color: var(--text-highlight);
+        }
+
+        .title-and-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+<!-- 统一页头占位符 -->
+<div id="header-container"></div>
+
+<!-- 服务列表主体 -->
+<main class="services-container">
+    <!-- 服务列表 -->
+    <div class="services-list" x-data="serviceComponent()" x-init="init()">
+        <div class="page-header-area">
+            <div class="title-and-button">
+                <h5 class="page-title">社区服务</h5>
+            </div>
+
+            <p class="page-description">招聘、内推、项目组队，我们致力于推动C++技术生态发展</p>
+        </div>
+
+        <!-- 招聘服务 -->
+        <section class="service-card">
+            <h2 class="service-title">
+                <i class="fas fa-briefcase"></i> 招聘服务
+            </h2>
+            <div class="service-description">
+                为企业和开发者搭建桥梁，提供C++相关职位的招聘和求职服务，帮助优秀的C++人才找到理想的工作机会。
+            </div>
+            <div class="service-items">
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++高级工程师</h3>
+                    <div class="service-item-info">
+                        <p><strong>公司：</strong>腾讯科技</p>
+                        <p><strong>地点：</strong>深圳</p>
+                        <p><strong>薪资：</strong>30-50K·16薪</p>
+                        <p><strong>要求：</strong>5年以上C++开发经验，熟悉现代C++标准，有高性能服务器开发经验</p>
+                    </div>
+                    <a href="#" class="action-button">立即投递</a>
+                </div>
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++后端开发工程师</h3>
+                    <div class="service-item-info">
+                        <p><strong>公司：</strong>阿里巴巴</p>
+                        <p><strong>地点：</strong>杭州</p>
+                        <p><strong>薪资：</strong>25-45K·14薪</p>
+                        <p><strong>要求：</strong>3年以上C++开发经验，熟悉网络编程，有分布式系统开发经验</p>
+                    </div>
+                    <a href="#" class="action-button">立即投递</a>
+                </div>
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++游戏开发工程师</h3>
+                    <div class="service-item-info">
+                        <p><strong>公司：</strong>网易游戏</p>
+                        <p><strong>地点：</strong>广州</p>
+                        <p><strong>薪资：</strong>35-60K·16薪</p>
+                        <p><strong>要求：</strong>2年以上游戏开发经验，熟悉C++，有Unity或Unreal Engine经验</p>
+                    </div>
+                    <a href="#" class="action-button">立即投递</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 内推服务 -->
+        <section class="service-card">
+            <h2 class="service-title">
+                <i class="fas fa-handshake"></i> 内推服务
+            </h2>
+            <div class="service-description">
+                利用社区资源，为会员提供企业内推机会，提高求职成功率，帮助你更快获得面试机会。
+            </div>
+            <div class="service-items">
+                <div class="service-item-card">
+                    <h3 class="service-item-title">百度内推</h3>
+                    <div class="service-item-info">
+                        <p><strong>职位：</strong>C++研发工程师</p>
+                        <p><strong>地点：</strong>北京</p>
+                        <p><strong>内推码：</strong>BAIDU2025</p>
+                        <p><strong>截止日期：</strong>2025年6月30日</p>
+                    </div>
+                    <a href="#" class="action-button">获取内推</a>
+                </div>
+                <div class="service-item-card">
+                    <h3 class="service-item-title">字节跳动内推</h3>
+                    <div class="service-item-info">
+                        <p><strong>职位：</strong>后端C++工程师</p>
+                        <p><strong>地点：</strong>北京、上海、深圳</p>
+                        <p><strong>内推码：</strong>BYTE2025</p>
+                        <p><strong>截止日期：</strong>2025年7月15日</p>
+                    </div>
+                    <a href="#" class="action-button">获取内推</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 项目组队 -->
+        <section class="service-card">
+            <h2 class="service-title">
+                <i class="fas fa-users"></i> 项目组队
+            </h2>
+            <div class="service-description">
+                寻找志同道合的C++开发者，组队开发开源项目，共同学习进步，积累实战经验。
+            </div>
+            <div class="service-items">
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++协程库开发</h3>
+                    <div class="service-item-info">
+                        <p><strong>项目描述：</strong>基于C++20协程标准，开发一个跨平台的协程库</p>
+                        <p><strong>需要技能：</strong>C++20、协程、CMake</p>
+                        <p><strong>招募人数：</strong>3-5人</p>
+                        <p><strong>项目状态：</strong>筹备中</p>
+                    </div>
+                    <a href="#" class="action-button">加入项目</a>
+                </div>
+                <div class="service-item-card">
+                    <h3 class="service-item-title">现代C++网络库</h3>
+                    <div class="service-item-info">
+                        <p><strong>项目描述：</strong>开发一个基于现代C++的高性能网络库，支持TCP/UDP/HTTP</p>
+                        <p><strong>需要技能：</strong>C++17/20、网络编程、多线程</p>
+                        <p><strong>招募人数：</strong>4-6人</p>
+                        <p><strong>项目状态：</strong>进行中</p>
+                    </div>
+                    <a href="#" class="action-button">加入项目</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术咨询 -->
+        <section class="service-card">
+            <h2 class="service-title">
+                <i class="fas fa-question-circle"></i> 技术咨询
+            </h2>
+            <div class="service-description">
+                提供C++技术咨询服务，解决开发过程中遇到的技术难题，由社区专家提供专业建议。
+            </div>
+            <div class="service-items">
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++性能优化咨询</h3>
+                    <div class="service-item-info">
+                        <p><strong>服务内容：</strong>代码性能分析、瓶颈定位、优化建议</p>
+                        <p><strong>适合人群：</strong>需要优化C++代码性能的开发者</p>
+                        <p><strong>咨询方式：</strong>线上一对一</p>
+                        <p><strong>费用：</strong>免费（社区福利）</p>
+                    </div>
+                    <a href="#" class="action-button">预约咨询</a>
+                </div>
+                <div class="service-item-card">
+                    <h3 class="service-item-title">C++架构设计咨询</h3>
+                    <div class="service-item-info">
+                        <p><strong>服务内容：</strong>系统架构设计、代码结构优化、技术选型建议</p>
+                        <p><strong>适合人群：</strong>需要设计C++系统架构的团队</p>
+                        <p><strong>咨询方式：</strong>线上会议</p>
+                        <p><strong>费用：</strong>免费（社区福利）</p>
+                    </div>
+                    <a href="#" class="action-button">预约咨询</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- 统一页脚占位符 -->
+<div id="footer-container"></div>
+<!-- API服务脚本 -->
+<script src="script/api_service.js"></script>
+<!-- 统一布局脚本（包含用户信息管理功能） -->
+<script src="script/layout.js"></script>
+
+<script>
+    // 加载 header
+    document.addEventListener('DOMContentLoaded', async function () {
+
+    });
+
+    function serviceComponent() {
+        return {
+            currentUser: null,
+            services: [],
+            loading: true,
+
+            // 初始化
+            async init() {
+                // 从URL中解析参数
+                const urlParams = new URLSearchParams(window.location.search);
+
+                // 模拟加载服务数据
+                this.loadServices();
+            },
+
+            loadServices() {
+                // 模拟加载服务数据
+                this.services = [
+                    {
+                        id: 1,
+                        title: "招聘服务",
+                        description: "为企业和开发者搭建桥梁，提供C++相关职位的招聘和求职服务",
+                        items: [
+                            {
+                                title: "C++高级工程师",
+                                company: "腾讯科技",
+                                location: "深圳",
+                                salary: "30-50K·16薪",
+                                requirements: "5年以上C++开发经验，熟悉现代C++标准，有高性能服务器开发经验"
+                            },
+                            {
+                                title: "C++后端开发工程师",
+                                company: "阿里巴巴",
+                                location: "杭州",
+                                salary: "25-45K·14薪",
+                                requirements: "3年以上C++开发经验，熟悉网络编程，有分布式系统开发经验"
+                            },
+                            {
+                                title: "C++游戏开发工程师",
+                                company: "网易游戏",
+                                location: "广州",
+                                salary: "35-60K·16薪",
+                                requirements: "2年以上游戏开发经验，熟悉C++，有Unity或Unreal Engine经验"
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "内推服务",
+                        description: "利用社区资源，为会员提供企业内推机会，提高求职成功率",
+                        items: [
+                            {
+                                title: "百度内推",
+                                position: "C++研发工程师",
+                                location: "北京",
+                                referralCode: "BAIDU2025",
+                                deadline: "2025年6月30日"
+                            },
+                            {
+                                title: "字节跳动内推",
+                                position: "后端C++工程师",
+                                location: "北京、上海、深圳",
+                                referralCode: "BYTE2025",
+                                deadline: "2025年7月15日"
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "项目组队",
+                        description: "寻找志同道合的C++开发者，组队开发开源项目，共同学习进步",
+                        items: [
+                            {
+                                title: "C++协程库开发",
+                                description: "基于C++20协程标准，开发一个跨平台的协程库",
+                                skills: "C++20、协程、CMake",
+                                teamSize: "3-5人",
+                                status: "筹备中"
+                            },
+                            {
+                                title: "现代C++网络库",
+                                description: "开发一个基于现代C++的高性能网络库，支持TCP/UDP/HTTP",
+                                skills: "C++17/20、网络编程、多线程",
+                                teamSize: "4-6人",
+                                status: "进行中"
+                            }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        title: "技术咨询",
+                        description: "提供C++技术咨询服务，解决开发过程中遇到的技术难题",
+                        items: [
+                            {
+                                title: "C++性能优化咨询",
+                                content: "代码性能分析、瓶颈定位、优化建议",
+                                targetAudience: "需要优化C++代码性能的开发者",
+                                method: "线上一对一",
+                                cost: "免费（社区福利）"
+                            },
+                            {
+                                title: "C++架构设计咨询",
+                                content: "系统架构设计、代码结构优化、技术选型建议",
+                                targetAudience: "需要设计C++系统架构的团队",
+                                method: "线上会议",
+                                cost: "免费（社区福利）"
+                            }
+                        ]
+                    }
+                ];
+                this.loading = false;
+            }
+        }
+    }
+</script>
+</body>
+
+</html>

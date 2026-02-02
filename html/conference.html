@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purecpp 大会 - 现代C++技术峰会</title>
+    <meta name="description" content="Purecpp大会，汇聚C++技术专家，分享前沿技术，探讨行业趋势">
+
+    <!-- 本地资源 -->
+    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <script defer src="script/alpine.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --muted-color: #6b7280;
+            --bg-page: #ffffff;
+            --bg-card: #ffffff;
+            --bg-search: #ffffff;
+            --text-main: #333;
+            --text-highlight: var(--primary);
+        }
+
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #121212;
+                --bg-card: #1e1e1e;
+                --bg-search: #2d2d2d;
+                --text-main: #f3f4f6;
+                --text-highlight: #818cf8;
+                --border-color: #374151;
+            }
+        }
+
+        /* 全局样式 */
+        body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航 */
+        .page-header {
+            max-width: 1200px;
+            width: 100%;
+            padding: 1rem 2rem;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo strong {
+            font-size: 18px !important;
+            color: var(--primary) !important;
+        }
+
+        /* 主要内容容器 */
+        .conference-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* 页面标题区域 */
+        .page-header-area {
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-highlight);
+        }
+
+        .page-description {
+            color: var(--muted-color);
+            font-size: 0.9rem;
+        }
+
+        /* 大会列表 */
+        .conferences-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* 大会卡片 */
+        .conference-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .conference-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .conference-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .conference-info {
+            color: var(--muted-color);
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        /* 大会详情 */
+        .conference-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        /* 注册按钮 */
+        .register-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .register-button:hover {
+            background: var(--primary-hover);
+            color: white;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .conference-container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .conference-card {
+                padding: 1rem;
+            }
+
+            .conference-title {
+                font-size: 1.2rem;
+            }
+
+            .conference-details {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* 隐藏类：用于默认隐藏和JS控制 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 调整 page-title 避免其 margin 干扰 Flex 布局 */
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            color: var(--text-highlight);
+        }
+
+        .title-and-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+<!-- 统一页头占位符 -->
+<div id="header-container"></div>
+
+<!-- 大会列表主体 -->
+<main class="conference-container">
+    <!-- 大会列表 -->
+    <div class="conferences-list" x-data="conferenceComponent()" x-init="init()">
+        <div class="page-header-area">
+            <div class="title-and-button">
+                <h5 class="page-title">Purecpp 大会</h5>
+            </div>
+
+            <p class="page-description">定期举办线上/线下技术分享会，学习最新技术趋势</p>
+        </div>
+
+        <!-- 即将到来的大会 -->
+        <section>
+            <h3 style="color: var(--text-highlight); margin-bottom: 1rem;">即将到来的大会</h3>
+            <div class="conference-card">
+                <h2 class="conference-title">Purecpp 2025 夏季大会</h2>
+                <div class="conference-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>2025年8月15-16日</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>北京 · 国家会议中心</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span>9:00 - 18:00</span>
+                    </div>
+                </div>
+                <div class="conference-info">
+                    本次大会将聚焦C++26新特性、协程实战、性能优化等热门话题，邀请国内外知名C++专家进行分享。
+                </div>
+                <a href="#" class="register-button">立即报名</a>
+            </div>
+        </section>
+
+        <!-- 往届大会 -->
+        <section style="margin-top: 2rem;">
+            <h3 style="color: var(--text-highlight); margin-bottom: 1rem;">往届大会</h3>
+            <div class="conference-card">
+                <h2 class="conference-title">Purecpp 2024 冬季大会</h2>
+                <div class="conference-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>2024年12月20-21日</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>上海 · 国际会议中心</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-users"></i>
+                        <span>1200+ 参会人数</span>
+                    </div>
+                </div>
+                <div class="conference-info">
+                    大会主题：现代C++的未来发展，涵盖C++23新特性、模块系统实践、AI与C++等议题。
+                </div>
+                <a href="#" class="register-button">查看回顾</a>
+            </div>
+
+            <div class="conference-card">
+                <h2 class="conference-title">Purecpp 2024 夏季大会</h2>
+                <div class="conference-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>2024年8月10-11日</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>深圳 · 深圳湾体育中心</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-users"></i>
+                        <span>1000+ 参会人数</span>
+                    </div>
+                </div>
+                <div class="conference-info">
+                    大会主题：C++在云原生时代的应用，探讨C++在高性能计算、边缘计算等领域的最佳实践。
+                </div>
+                <a href="#" class="register-button">查看回顾</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- 统一页脚占位符 -->
+<div id="footer-container"></div>
+<!-- API服务脚本 -->
+<script src="script/api_service.js"></script>
+<!-- 统一布局脚本（包含用户信息管理功能） -->
+<script src="script/layout.js"></script>
+
+<script>
+    // 加载 header
+    document.addEventListener('DOMContentLoaded', async function () {
+
+    });
+
+    function conferenceComponent() {
+        return {
+            currentUser: null,
+            conferences: [],
+            loading: true,
+
+            // 初始化
+            async init() {
+                // 从URL中解析参数
+                const urlParams = new URLSearchParams(window.location.search);
+
+                // 模拟加载大会数据
+                this.loadConferences();
+            },
+
+            loadConferences() {
+                // 模拟加载大会数据
+                this.conferences = [
+                    {
+                        id: 1,
+                        title: "Purecpp 2025 夏季大会",
+                        date: "2025年8月15-16日",
+                        location: "北京 · 国家会议中心",
+                        time: "9:00 - 18:00",
+                        description: "本次大会将聚焦C++26新特性、协程实战、性能优化等热门话题，邀请国内外知名C++专家进行分享。",
+                        status: "upcoming"
+                    },
+                    {
+                        id: 2,
+                        title: "Purecpp 2024 冬季大会",
+                        date: "2024年12月20-21日",
+                        location: "上海 · 国际会议中心",
+                        attendees: "1200+ 参会人数",
+                        description: "大会主题：现代C++的未来发展，涵盖C++23新特性、模块系统实践、AI与C++等议题。",
+                        status: "past"
+                    },
+                    {
+                        id: 3,
+                        title: "Purecpp 2024 夏季大会",
+                        date: "2024年8月10-11日",
+                        location: "深圳 · 深圳湾体育中心",
+                        attendees: "1000+ 参会人数",
+                        description: "大会主题：C++在云原生时代的应用，探讨C++在高性能计算、边缘计算等领域的最佳实践。",
+                        status: "past"
+                    }
+                ];
+                this.loading = false;
+            }
+        }
+    }
+</script>
+</body>
+
+</html>

@@ -270,9 +270,15 @@ constexpr std::string_view get_alias_struct_name(user_experience_detail_t *) {
   return "user_experience_detail";
 }
 
+enum class TagGroupType : int32_t {
+  TECH_ARTICLES = 1, // 技术文章标签组
+  CPP_PARTY = 2,     // 社区大会标签组
+  SERVICES = 3       // 社区服务标签组
+};
 struct tags_t {
   int tag_id;
   std::array<char, 50> name;
+  int tag_group;
 };
 constexpr std::string_view get_alias_struct_name(tags_t *) { return "tags"; }
 
