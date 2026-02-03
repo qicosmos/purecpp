@@ -428,10 +428,10 @@ class APIService {
     }
 
     // 审核文章
-    async reviewArticle(reviewer_name, slug, review_status) {
+    async reviewArticle(reviewer_name, slug, review_status, review_comment = '') {
         return this.request('/api/v1/review_pending_article', {
             method: 'POST',
-            body: JSON.stringify({reviewer_name, slug, review_status})
+            body: JSON.stringify({reviewer_name, slug, review_status, review_comment})
         });
     }
 

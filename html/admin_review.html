@@ -346,6 +346,16 @@
                     </div>
 
                     <footer>
+                        <!-- 审核内容填写框 -->
+                        <div style="margin-bottom: 1rem; width: 100%;">
+                            <label for="review-comment-{{ article.slug }}"
+                                   style="display: block; margin-bottom: 0.5rem;">审核意见：</label>
+                            <textarea id="review-comment-{{ article.slug }}"
+                                      x-model="article.reviewComment"
+                                      style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; min-height: 80px;"
+                                      placeholder="请输入审核意见..."></textarea>
+                        </div>
+
                         <div style="display: flex; gap: 10px; justify-content: flex-start; margin: 0;">
                             <button class="primary" @click="reviewArticle(article.slug, 'approve')"
                                     style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.9rem; margin: 0;">
@@ -533,18 +543,21 @@
             },
 
             async reviewArticle(s, action) {
+                // 查找文章
+                const article = this.pendingArticles.find(a => a.slug === s);
+                if (!article) {
+                    alert('文章不存在');
+                    return;
+                }
+
                 if (!confirm(`确定要${action === 'approve' ? '通过' : '拒绝'}这篇文章吗？`)) return;
 
                 try {
-                    // 查找文章ID
-                    const article = this.pendingArticles.find(a => a.slug === s);
-                    if (!article) {
-                        alert('文章不存在');
-                        return;
-                    }
+                    // 获取审核意见
+                    const reviewComment = article.reviewComment || '';
 
-                    // 使用apiService审核文章
-                    const response = await apiService.reviewArticle(this.currentUser.username, article.slug, action === 'approve' ? 'accepted' : 'rejected');
+                    // 使用apiService审核文章，传递review_comment参数
+                    const response = await apiService.reviewArticle(this.currentUser.username, article.slug, action === 'approve' ? 'accepted' : 'rejected', reviewComment);
                         // 从本地列表中移除
                         this.pendingArticles = this.pendingArticles.filter(a => a.slug !== s);
                         alert('操作成功');

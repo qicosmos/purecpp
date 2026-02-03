@@ -16,6 +16,7 @@ struct user_article_item {
   uint64_t updated_at;
   uint32_t views_count;
   uint32_t comments_count;
+  std::string review_comment; // 审核结果
 };
 
 // 获取评论请求结构体

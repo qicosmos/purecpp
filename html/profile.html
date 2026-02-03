@@ -333,6 +333,10 @@
             font-size: 0.9rem;
         }
 
+        .article-review-comment {
+            margin-top: 0.1rem;
+        }
+
         /* 标签 */
         .article-tags {
             display: flex;
@@ -910,8 +914,10 @@
                     <h2 class="article-title">
                         <a href="/article.html?slug=${article.slug}">${article.title}</a>
                     </h2>
-                    <p class="article-excerpt">${article.abstraction || article.content.substring(0, 150)}${(article.abstraction || article.content).length > 150 ? '...' : ''}</p>
-                    
+                    <p class="article-excerpt">文章摘要:${article.abstraction || article.content.substring(0, 150)}${(article.abstraction || article.content).length > 150 ? '...' : ''}</p>
+                    <br/>
+                    <p class="article-review-comment">审核结果:${article.review_comment || ''}</p>
+
                     <!-- 标签列表 -->
                     <div class="article-tags">
                         ${article.tag_ids ? article.tag_ids.split(',').map(tagId => `<a href="#" class="tag">${tagId}</a>`).join('') : ''}
