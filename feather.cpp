@@ -357,7 +357,7 @@ int main() {
         std::string content;
         cinatra::detail::resize(content, 10240);
         while (true) {
-          auto [ec, size] = 
+          auto [ec, size] =
               co_await in_file.async_read(content.data(), content.size());
           if (ec) {
             resp.set_status(status_type::no_content);
@@ -397,5 +397,15 @@ int main() {
   server.set_http_handler<POST>("/api/v1/delete_mycomment",
                                 &articles_comment::delete_my_comment, comment,
                                 log_request_response{}, check_token{});
+
+  // 获取社区服务文章路由
+  server.set_http_handler<POST>("/api/v1/get_community_service_articles",
+                                &articles::get_community_service, article,
+                                log_request_response{});
+
+  // 获取purecpp大会文章路由
+  server.set_http_handler<POST>("/api/v1/get_purecpp_conference_articles",
+                                &articles::get_purecpp_conference, article,
+                                log_request_response{});
   server.sync_start();
 }

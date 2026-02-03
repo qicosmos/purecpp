@@ -105,6 +105,7 @@
 
         /* 服务卡片 */
         .service-card {
+            margin-top: 1rem;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -267,141 +268,45 @@
             <p class="page-description">招聘、内推、项目组队，我们致力于推动C++技术生态发展</p>
         </div>
 
-        <!-- 招聘服务 -->
+        <!-- 社区服务文章 -->
         <section class="service-card">
-            <h2 class="service-title">
-                <i class="fas fa-briefcase"></i> 招聘服务
-            </h2>
-            <div class="service-description">
-                为企业和开发者搭建桥梁，提供C++相关职位的招聘和求职服务，帮助优秀的C++人才找到理想的工作机会。
-            </div>
             <div class="service-items">
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++高级工程师</h3>
-                    <div class="service-item-info">
-                        <p><strong>公司：</strong>腾讯科技</p>
-                        <p><strong>地点：</strong>深圳</p>
-                        <p><strong>薪资：</strong>30-50K·16薪</p>
-                        <p><strong>要求：</strong>5年以上C++开发经验，熟悉现代C++标准，有高性能服务器开发经验</p>
-                    </div>
-                    <a href="#" class="action-button">立即投递</a>
-                </div>
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++后端开发工程师</h3>
-                    <div class="service-item-info">
-                        <p><strong>公司：</strong>阿里巴巴</p>
-                        <p><strong>地点：</strong>杭州</p>
-                        <p><strong>薪资：</strong>25-45K·14薪</p>
-                        <p><strong>要求：</strong>3年以上C++开发经验，熟悉网络编程，有分布式系统开发经验</p>
-                    </div>
-                    <a href="#" class="action-button">立即投递</a>
-                </div>
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++游戏开发工程师</h3>
-                    <div class="service-item-info">
-                        <p><strong>公司：</strong>网易游戏</p>
-                        <p><strong>地点：</strong>广州</p>
-                        <p><strong>薪资：</strong>35-60K·16薪</p>
-                        <p><strong>要求：</strong>2年以上游戏开发经验，熟悉C++，有Unity或Unreal Engine经验</p>
-                    </div>
-                    <a href="#" class="action-button">立即投递</a>
-                </div>
-            </div>
-        </section>
+                <!-- 文章列表 -->
+                <template x-if="communityArticles.length > 0 && !articlesLoading">
+                    <template x-for="article in communityArticles" :key="article.slug">
+                        <div class="service-item-card">
+                            <h3 class="service-item-title"><a :href="'article.html?slug=' + article.slug"
+                                                              style="text-decoration: none; color: var(--text-main);"><span
+                                    x-text="article.title"></span></a></h3>
+                            <div class="service-item-info">
+                                <p><strong>作者：</strong><span x-text="article.author_name"></span></p>
+                                <p><strong>发布时间：</strong><span x-text="formatDate(article.created_at)"></span></p>
+                                <p><strong>浏览量：</strong><span x-text="article.views_count"></span></p>
+                                <p><strong>评论数：</strong><span x-text="article.comments_count"></span></p>
+                                <p class="service-item-excerpt"><span x-text="article.summary"></span></p>
+                            </div>
+                            <a :href="'article.html?slug=' + article.slug" class="action-button">阅读全文</a>
+                        </div>
+                    </template>
+                </template>
 
-        <!-- 内推服务 -->
-        <section class="service-card">
-            <h2 class="service-title">
-                <i class="fas fa-handshake"></i> 内推服务
-            </h2>
-            <div class="service-description">
-                利用社区资源，为会员提供企业内推机会，提高求职成功率，帮助你更快获得面试机会。
-            </div>
-            <div class="service-items">
-                <div class="service-item-card">
-                    <h3 class="service-item-title">百度内推</h3>
-                    <div class="service-item-info">
-                        <p><strong>职位：</strong>C++研发工程师</p>
-                        <p><strong>地点：</strong>北京</p>
-                        <p><strong>内推码：</strong>BAIDU2025</p>
-                        <p><strong>截止日期：</strong>2025年6月30日</p>
+                <!-- 无文章提示 -->
+                <template x-if="communityArticles.length === 0 && !articlesLoading">
+                    <div class="service-item-card" style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-info-circle"
+                           style="font-size: 2rem; color: var(--muted-color); margin-bottom: 1rem;"></i>
+                        <p>暂无社区服务文章</p>
                     </div>
-                    <a href="#" class="action-button">获取内推</a>
-                </div>
-                <div class="service-item-card">
-                    <h3 class="service-item-title">字节跳动内推</h3>
-                    <div class="service-item-info">
-                        <p><strong>职位：</strong>后端C++工程师</p>
-                        <p><strong>地点：</strong>北京、上海、深圳</p>
-                        <p><strong>内推码：</strong>BYTE2025</p>
-                        <p><strong>截止日期：</strong>2025年7月15日</p>
-                    </div>
-                    <a href="#" class="action-button">获取内推</a>
-                </div>
-            </div>
-        </section>
+                </template>
 
-        <!-- 项目组队 -->
-        <section class="service-card">
-            <h2 class="service-title">
-                <i class="fas fa-users"></i> 项目组队
-            </h2>
-            <div class="service-description">
-                寻找志同道合的C++开发者，组队开发开源项目，共同学习进步，积累实战经验。
-            </div>
-            <div class="service-items">
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++协程库开发</h3>
-                    <div class="service-item-info">
-                        <p><strong>项目描述：</strong>基于C++20协程标准，开发一个跨平台的协程库</p>
-                        <p><strong>需要技能：</strong>C++20、协程、CMake</p>
-                        <p><strong>招募人数：</strong>3-5人</p>
-                        <p><strong>项目状态：</strong>筹备中</p>
+                <!-- 加载中 -->
+                <template x-if="articlesLoading">
+                    <div class="service-item-card" style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-spinner fa-spin"
+                           style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <p>加载中...</p>
                     </div>
-                    <a href="#" class="action-button">加入项目</a>
-                </div>
-                <div class="service-item-card">
-                    <h3 class="service-item-title">现代C++网络库</h3>
-                    <div class="service-item-info">
-                        <p><strong>项目描述：</strong>开发一个基于现代C++的高性能网络库，支持TCP/UDP/HTTP</p>
-                        <p><strong>需要技能：</strong>C++17/20、网络编程、多线程</p>
-                        <p><strong>招募人数：</strong>4-6人</p>
-                        <p><strong>项目状态：</strong>进行中</p>
-                    </div>
-                    <a href="#" class="action-button">加入项目</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- 技术咨询 -->
-        <section class="service-card">
-            <h2 class="service-title">
-                <i class="fas fa-question-circle"></i> 技术咨询
-            </h2>
-            <div class="service-description">
-                提供C++技术咨询服务，解决开发过程中遇到的技术难题，由社区专家提供专业建议。
-            </div>
-            <div class="service-items">
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++性能优化咨询</h3>
-                    <div class="service-item-info">
-                        <p><strong>服务内容：</strong>代码性能分析、瓶颈定位、优化建议</p>
-                        <p><strong>适合人群：</strong>需要优化C++代码性能的开发者</p>
-                        <p><strong>咨询方式：</strong>线上一对一</p>
-                        <p><strong>费用：</strong>免费（社区福利）</p>
-                    </div>
-                    <a href="#" class="action-button">预约咨询</a>
-                </div>
-                <div class="service-item-card">
-                    <h3 class="service-item-title">C++架构设计咨询</h3>
-                    <div class="service-item-info">
-                        <p><strong>服务内容：</strong>系统架构设计、代码结构优化、技术选型建议</p>
-                        <p><strong>适合人群：</strong>需要设计C++系统架构的团队</p>
-                        <p><strong>咨询方式：</strong>线上会议</p>
-                        <p><strong>费用：</strong>免费（社区福利）</p>
-                    </div>
-                    <a href="#" class="action-button">预约咨询</a>
-                </div>
+                </template>
             </div>
         </section>
     </div>
@@ -425,112 +330,58 @@
             currentUser: null,
             services: [],
             loading: true,
+            communityArticles: [],
+            articlesLoading: true,
+            articlesCurrentPage: 1,
+            articlesPerPage: 10,
+            articlesTotalCount: 0,
 
             // 初始化
             async init() {
                 // 从URL中解析参数
                 const urlParams = new URLSearchParams(window.location.search);
 
-                // 模拟加载服务数据
+                // 加载服务数据
                 this.loadServices();
+
+                // 加载社区服务文章
+                this.loadCommunityServiceArticles();
             },
 
             loadServices() {
-                // 模拟加载服务数据
-                this.services = [
-                    {
-                        id: 1,
-                        title: "招聘服务",
-                        description: "为企业和开发者搭建桥梁，提供C++相关职位的招聘和求职服务",
-                        items: [
-                            {
-                                title: "C++高级工程师",
-                                company: "腾讯科技",
-                                location: "深圳",
-                                salary: "30-50K·16薪",
-                                requirements: "5年以上C++开发经验，熟悉现代C++标准，有高性能服务器开发经验"
-                            },
-                            {
-                                title: "C++后端开发工程师",
-                                company: "阿里巴巴",
-                                location: "杭州",
-                                salary: "25-45K·14薪",
-                                requirements: "3年以上C++开发经验，熟悉网络编程，有分布式系统开发经验"
-                            },
-                            {
-                                title: "C++游戏开发工程师",
-                                company: "网易游戏",
-                                location: "广州",
-                                salary: "35-60K·16薪",
-                                requirements: "2年以上游戏开发经验，熟悉C++，有Unity或Unreal Engine经验"
-                            }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        title: "内推服务",
-                        description: "利用社区资源，为会员提供企业内推机会，提高求职成功率",
-                        items: [
-                            {
-                                title: "百度内推",
-                                position: "C++研发工程师",
-                                location: "北京",
-                                referralCode: "BAIDU2025",
-                                deadline: "2025年6月30日"
-                            },
-                            {
-                                title: "字节跳动内推",
-                                position: "后端C++工程师",
-                                location: "北京、上海、深圳",
-                                referralCode: "BYTE2025",
-                                deadline: "2025年7月15日"
-                            }
-                        ]
-                    },
-                    {
-                        id: 3,
-                        title: "项目组队",
-                        description: "寻找志同道合的C++开发者，组队开发开源项目，共同学习进步",
-                        items: [
-                            {
-                                title: "C++协程库开发",
-                                description: "基于C++20协程标准，开发一个跨平台的协程库",
-                                skills: "C++20、协程、CMake",
-                                teamSize: "3-5人",
-                                status: "筹备中"
-                            },
-                            {
-                                title: "现代C++网络库",
-                                description: "开发一个基于现代C++的高性能网络库，支持TCP/UDP/HTTP",
-                                skills: "C++17/20、网络编程、多线程",
-                                teamSize: "4-6人",
-                                status: "进行中"
-                            }
-                        ]
-                    },
-                    {
-                        id: 4,
-                        title: "技术咨询",
-                        description: "提供C++技术咨询服务，解决开发过程中遇到的技术难题",
-                        items: [
-                            {
-                                title: "C++性能优化咨询",
-                                content: "代码性能分析、瓶颈定位、优化建议",
-                                targetAudience: "需要优化C++代码性能的开发者",
-                                method: "线上一对一",
-                                cost: "免费（社区福利）"
-                            },
-                            {
-                                title: "C++架构设计咨询",
-                                content: "系统架构设计、代码结构优化、技术选型建议",
-                                targetAudience: "需要设计C++系统架构的团队",
-                                method: "线上会议",
-                                cost: "免费（社区福利）"
-                            }
-                        ]
-                    }
-                ];
+                // 清空服务数据，等待API动态加载
+                this.services = [];
                 this.loading = false;
+            },
+
+            // 加载社区服务文章
+            async loadCommunityServiceArticles() {
+                this.articlesLoading = true;
+                try {
+                    const response = await apiService.getCommunityServiceArticles(this.articlesCurrentPage, this.articlesPerPage);
+                    if (response.success) {
+                        this.communityArticles = response.data;
+                        this.articlesTotalCount = response.total_count || 0;
+                    } else {
+                        console.error('加载社区服务文章失败:', response.message);
+                    }
+                } catch (error) {
+                    console.error('加载社区服务文章出错:', error);
+                } finally {
+                    this.articlesLoading = false;
+                }
+            },
+
+            // 格式化时间戳
+            formatDate(timestamp) {
+                const date = new Date(timestamp);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
             }
         }
     }

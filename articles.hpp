@@ -27,8 +27,8 @@ struct article_page_request {
 struct article_list {
   std::string title;
   std::string summary;
-  std::array<char, 8> slug;
-  std::array<char, 21> author_name;
+  std::string slug;
+  std::string author_name;
   int author_id;
   std::string tag_ids;
   uint64_t created_at;
@@ -41,8 +41,8 @@ struct pending_article_list {
   std::string title;
   std::string summary;
   std::string content;
-  std::array<char, 8> slug;
-  std::array<char, 21> author_name;
+  std::string slug;
+  std::string author_name;
   std::string tag_ids;
   uint64_t created_at;
   uint64_t updated_at;
@@ -63,7 +63,7 @@ struct article_detail {
   std::string title;
   std::string summary;
   std::string content;
-  std::array<char, 21> author_name;
+  std::string author_name;
   std::string tag_ids;
   uint64_t created_at;
   uint64_t updated_at;
@@ -72,8 +72,8 @@ struct article_detail {
 };
 
 struct comments {
-  std::array<char, 21> author_name;
-  std::array<char, 21> parant_name;
+  std::string author_name;
+  std::string parant_name;
   std::string_view content;
   uint64_t created_at;
   uint64_t updated_at;
@@ -697,6 +697,145 @@ public:
     }
 
     std::string json = make_success("文章删除成功");
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  // 获取社区服务文章
+  void get_community_service(coro_http_request &req, coro_http_response &resp) {
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    // 从请求体中获取分页信息
+    auto body = req.get_body();
+    article_page_request page_req{};
+    std::error_code ec;
+    if (!body.empty()) {
+      iguana::from_json(page_req, body, ec);
+    }
+
+    int page = 1;
+    int per_page = 10;
+
+    if (page_req.current_page > 0) {
+      page = page_req.current_page;
+    }
+    if (page_req.per_page > 0 && page_req.per_page <= 50) {
+      per_page = page_req.per_page;
+    }
+
+    // 构建查询条件：tag_ids包含160，且文章已发布且未删除
+    auto where_cond = col(&articles_t::is_deleted) == 0 &&
+                      col(&articles_t::status) == PUBLISHED.data() &&
+                      col(&articles_t::tag_ids).like("%160%");
+
+    // 计算总记录数
+    size_t total_count =
+        conn->select(ormpp::count())
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .collect();
+
+    // 计算分页参数
+    size_t limit = per_page;
+    size_t offset = (page - 1) * per_page;
+
+    // 获取社区服务文章列表
+    auto articles_list =
+        conn->select(col(&articles_t::title), col(&articles_t::abstraction),
+                     col(&articles_t::slug), col(&users_t::user_name),
+                     col(&articles_t::author_id), col(&articles_t::tag_ids),
+                     col(&articles_t::created_at), col(&articles_t::updated_at),
+                     col(&articles_t::views_count),
+                     col(&articles_t::comments_count))
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .order_by(col(&articles_t::created_at).desc())
+            .limit(ormpp::token)
+            .offset(ormpp::token)
+            .collect<article_list>(limit, offset);
+
+    std::string json = make_data(std::move(articles_list),
+                                 "获取社区服务文章列表成功", total_count);
+    if (json.empty()) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  // 获取purecpp大会文章
+  void get_purecpp_conference(coro_http_request &req,
+                              coro_http_response &resp) {
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    // 从请求体中获取分页信息
+    auto body = req.get_body();
+    article_page_request page_req{};
+    std::error_code ec;
+    if (!body.empty()) {
+      iguana::from_json(page_req, body, ec);
+    }
+
+    int page = 1;
+    int per_page = 10;
+
+    if (page_req.current_page > 0) {
+      page = page_req.current_page;
+    }
+    if (page_req.per_page > 0 && page_req.per_page <= 50) {
+      per_page = page_req.per_page;
+    }
+
+    // 构建查询条件：tag_ids包含107，且文章已发布且未删除
+    auto where_cond = col(&articles_t::is_deleted) == 0 &&
+                      col(&articles_t::status) == PUBLISHED.data() &&
+                      col(&articles_t::tag_ids).like("%107%");
+
+    // 计算总记录数
+    size_t total_count =
+        conn->select(ormpp::count())
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .collect();
+
+    // 计算分页参数
+    size_t limit = per_page;
+    size_t offset = (page - 1) * per_page;
+
+    // 获取purecpp大会文章列表
+    auto articles_list =
+        conn->select(col(&articles_t::title), col(&articles_t::abstraction),
+                     col(&articles_t::slug), col(&users_t::user_name),
+                     col(&articles_t::author_id), col(&articles_t::tag_ids),
+                     col(&articles_t::created_at), col(&articles_t::updated_at),
+                     col(&articles_t::views_count),
+                     col(&articles_t::comments_count))
+            .from<articles_t>()
+            .inner_join(col(&articles_t::author_id), col(&users_t::id))
+            .where(where_cond)
+            .order_by(col(&articles_t::created_at).desc())
+            .limit(ormpp::token)
+            .offset(ormpp::token)
+            .collect<article_list>(limit, offset);
+
+    std::string json = make_data(std::move(articles_list),
+                                 "获取purecpp大会文章列表成功", total_count);
+    if (json.empty()) {
+      set_server_internel_error(resp);
+      return;
+    }
+
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };

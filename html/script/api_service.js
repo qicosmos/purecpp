@@ -592,6 +592,22 @@ class APIService {
             body: JSON.stringify({comment_id: commentId})
         });
     }
+
+    // 获取社区服务文章列表
+    async getCommunityServiceArticles(page = 1, perPage = 10) {
+        return this.request('/api/v1/get_community_service_articles', {
+            method: 'POST',
+            body: JSON.stringify({current_page: page, per_page: perPage})
+        });
+    }
+
+    // 获取purecpp大会文章列表
+    async getPurecppConferenceArticles(page = 1, perPage = 10) {
+        return this.request('/api/v1/get_purecpp_conference_articles', {
+            method: 'POST',
+            body: JSON.stringify({current_page: page, per_page: perPage})
+        });
+    }
 }
 
 // 创建单例实例
