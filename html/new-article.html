@@ -254,7 +254,7 @@
                         </button>
                         <!-- 下拉菜单 -->
                         <div class="dropdown-menu" x-show="open" x-transition style="width: 100%;">
-                        <template x-for="tag in tags" :key="tag.tag_id">
+                            <template x-for="tag in filteredTags" :key="tag.tag_id">
                             <label>
                                 <input type="checkbox" :value="tag.tag_id" @change="toggle(tag.tag_id)"
                                        :checked="selectedTags && selectedTags.includes(tag.tag_id)">
@@ -310,13 +310,16 @@
                 excerpt: '',
                 content: '',
                 tags: [],
+                filteredTags: [],
                 isLoading: false,
                 errorMessage: '',
                 open: false,
                 selectedTags: [],
+                userInfo: null,
                 init() {
                     console.log('init_call');
                     this.initializeSimpleMDE();
+                    this.userInfo = apiService.getUserInfo();
                     this.fetchTags();
                     this.selectedTags = [];
                 },
@@ -347,10 +350,24 @@
                         // 使用apiService获取标签列表
                         const response = await apiService.getTags();
                         this.tags = response.data;
+                        this.filterTags();
                     } catch (error) {
                         console.error('获取标签失败:', error);
                         this.errorMessage = '无法加载标签数据，请稍后重试。';
                         this.isLoading = false;
+                    }
+                },
+
+                filterTags() {
+                    // 检查用户是否为管理员
+                    const isAdmin = this.userInfo && (this.userInfo.role === 'admin' || this.userInfo.role === 'superadmin');
+
+                    if (isAdmin) {
+                        // 管理员可以看到所有标签
+                        this.filteredTags = this.tags;
+                    } else {
+                        // 非管理员只能看到tag_group不为2的标签
+                        this.filteredTags = this.tags.filter(tag => tag.tag_group !== 2);
                     }
                 },
 
