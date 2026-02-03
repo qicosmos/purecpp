@@ -593,6 +593,14 @@ class APIService {
         });
     }
 
+    // 文章加精华/取消精华
+    async toggleFeatured(slug) {
+        return this.request('/api/v1/toggle_featured', {
+            method: 'POST',
+            body: JSON.stringify({slug})
+        });
+    }
+
     // 获取社区服务文章列表
     async getCommunityServiceArticles(page = 1, perPage = 10) {
         return this.request('/api/v1/get_community_service_articles', {

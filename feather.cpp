@@ -407,5 +407,10 @@ int main() {
   server.set_http_handler<POST>("/api/v1/get_purecpp_conference_articles",
                                 &articles::get_purecpp_conference, article,
                                 log_request_response{});
+
+  // 文章加精华/取消精华路由
+  server.set_http_handler<POST>("/api/v1/toggle_featured",
+                                &articles::toggle_featured, article,
+                                log_request_response{}, check_token{});
   server.sync_start();
 }

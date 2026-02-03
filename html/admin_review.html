@@ -365,6 +365,10 @@
                                     style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.9rem; margin: 0;">
                                 <i class="fas fa-times"></i> 拒绝发布
                             </button>
+                            <button class="secondary" @click="toggleFeatured(article.slug)"
+                                    style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.9rem; margin: 0;">
+                                <i class="fas fa-star"></i> 加精华
+                            </button>
                         </div>
                     </footer>
                 </article>
@@ -580,6 +584,18 @@
             getTagName(tagId) {
                 const tag = this.tags.find(t => t.tag_id == tagId);
                 return tag ? tag.name : '';
+            },
+
+            async toggleFeatured(slug) {
+                if (!confirm('确定要为这篇文章加精华吗？')) return;
+
+                try {
+                    const response = await apiService.toggleFeatured(slug);
+                    alert('操作成功');
+                } catch (e) {
+                    console.error('加精华操作失败', e);
+                    alert('加精华操作失败');
+                }
             }
         }
     }

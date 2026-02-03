@@ -35,6 +35,7 @@ struct article_list {
   uint64_t updated_at;
   uint32_t views_count;
   uint32_t comments_count;
+  int featured_weight;
 };
 
 struct pending_article_list {
@@ -70,6 +71,7 @@ struct article_detail {
   uint64_t updated_at;
   uint32_t views_count;
   uint32_t comments_count;
+  int featured_weight;
 };
 
 struct comments {
@@ -237,7 +239,8 @@ public:
                      col(&articles_t::tag_ids), col(&articles_t::created_at),
                      col(&articles_t::updated_at),
                      col(&articles_t::views_count),
-                     col(&articles_t::comments_count))
+                     col(&articles_t::comments_count),
+                     col(&articles_t::featured_weight))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(col(&articles_t::slug).param() &&
@@ -385,13 +388,16 @@ public:
                      col(&articles_t::author_id), col(&articles_t::tag_ids),
                      col(&articles_t::created_at), col(&articles_t::updated_at),
                      col(&articles_t::views_count),
-                     col(&articles_t::comments_count))
+                     col(&articles_t::comments_count),
+                     col(&articles_t::featured_weight))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(where_cond);
     size_t limit = per_page;
     size_t offset = (page - 1) * per_page;
-    auto list = select_cond.order_by(col(&articles_t::created_at).desc())
+    auto list = select_cond
+                    .order_by(col(&articles_t::featured_weight).desc(),
+                              col(&articles_t::created_at).desc())
                     .limit(ormpp::token)
                     .offset(ormpp::token)
                     .collect<article_list>(limit, offset);
@@ -463,7 +469,8 @@ public:
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(where_cond)
-            .order_by(col(&articles_t::created_at).desc())
+            .order_by(col(&articles_t::featured_weight).desc(),
+                      col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
             .collect<pending_article_list>(limit, offset);
@@ -647,7 +654,8 @@ public:
                      col(&articles_t::review_comment))
             .from<articles_t>()
             .where(where_cond)
-            .order_by(col(&articles_t::created_at).desc())
+            .order_by(col(&articles_t::featured_weight).desc(),
+                      col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
             .collect<user_article_item>(limit, offset);
@@ -831,7 +839,8 @@ public:
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(where_cond)
-            .order_by(col(&articles_t::created_at).desc())
+            .order_by(col(&articles_t::featured_weight).desc(),
+                      col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
             .collect<article_list>(limit, offset);
@@ -927,11 +936,13 @@ public:
                      col(&articles_t::author_id), col(&articles_t::tag_ids),
                      col(&articles_t::created_at), col(&articles_t::updated_at),
                      col(&articles_t::views_count),
-                     col(&articles_t::comments_count))
+                     col(&articles_t::comments_count),
+                     col(&articles_t::featured_weight))
             .from<articles_t>()
             .inner_join(col(&articles_t::author_id), col(&users_t::id))
             .where(where_cond)
-            .order_by(col(&articles_t::created_at).desc())
+            .order_by(col(&articles_t::featured_weight).desc(),
+                      col(&articles_t::created_at).desc())
             .limit(ormpp::token)
             .offset(ormpp::token)
             .collect<article_list>(limit, offset);
@@ -943,6 +954,95 @@ public:
       return;
     }
 
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
+
+  // 处理文章加精华/取消精华
+  void toggle_featured(coro_http_request &req, coro_http_response &resp) {
+    auto body = req.get_body();
+    if (body.empty()) {
+      resp.set_status_and_content(status_type::bad_request,
+                                  make_error("无效的请求参数，请求体不能为空"));
+      return;
+    }
+
+    struct toggle_featured_request {
+      std::string slug;
+    };
+
+    toggle_featured_request request{};
+    std::error_code ec;
+    iguana::from_json(request, body, ec);
+    if (ec) {
+      resp.set_status_and_content(
+          status_type::bad_request,
+          make_error("无效的请求参数，JSON格式错误: " + ec.message()));
+      return;
+    }
+
+    // 检查用户是否是管理员
+    auto user_id = get_user_id_from_token(req);
+    if (user_id == 0) {
+      resp.set_status_and_content(status_type::unauthorized,
+                                  make_error("用户未登录或登录已过期"));
+      return;
+    }
+
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    auto users_vect = conn->select(ormpp::all)
+                          .from<users_t>()
+                          .where(col(&users_t::id) == user_id)
+                          .collect();
+    if (users_vect.empty()) {
+      resp.set_status_and_content(status_type::bad_request,
+                                  make_error("无效的请求参数"));
+      return;
+    }
+
+    auto &user = users_vect.front();
+    if (user.role != "admin" && user.role != "superadmin") {
+      resp.set_status_and_content(status_type::forbidden,
+                                  make_error("权限不足，只有管理员可以加精华"));
+      return;
+    }
+
+    // 获取当前文章的featured_weight值
+    auto article_vect = conn->select(col(&articles_t::featured_weight))
+                            .from<articles_t>()
+                            .where(col(&articles_t::slug) == request.slug &&
+                                   col(&articles_t::is_deleted) == 0)
+                            .collect();
+    if (article_vect.empty()) {
+      resp.set_status_and_content(status_type::not_found,
+                                  make_error("文章不存在或已被删除"));
+      return;
+    }
+
+    int current_weight = std::get<0>(article_vect.front());
+    int new_weight = (current_weight == 0) ? 1 : 0;
+
+    // 更新featured_weight值
+    articles_t article;
+    article.featured_weight = new_weight;
+    article.updated_at = get_timestamp_milliseconds();
+
+    int n = conn->update_some<&articles_t::featured_weight,
+                              &articles_t::updated_at>(
+        article, "slug='" + request.slug + "'");
+
+    if (n == 0) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    std::string message =
+        (new_weight == 1) ? "文章已成功加精华" : "文章已取消精华";
+    std::string json = make_success(message);
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
 };
