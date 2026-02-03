@@ -545,8 +545,8 @@ struct log_request_response {
   bool before(coro_http_request &req, coro_http_response &res) {
     // 记录请求信息
     auto body = req.get_body();
-    std::string sBody = (body.size() > 1000
-                         ? std::string(body.substr(0, 1000)) : std::string(body));
+    std::string sBody = (body.size() > 1000 ? std::string(body.substr(0, 1000))
+                                            : std::string(body));
     CINATRA_LOG_INFO << "[REQUEST ]" << req.get_method() << req.full_url()
                      << " Body:" << sBody;
     return true; // 继续处理请求
@@ -556,8 +556,8 @@ struct log_request_response {
   bool after(coro_http_request &req, coro_http_response &res) {
     // 记录响应信息（只记录前1000个字符以避免日志过长）
     auto body = res.content();
-    std::string sBody = (body.size() > 1000
-                             ? std::string(body.substr(0, 1000)) : std::string(body));
+    std::string sBody = (body.size() > 1000 ? std::string(body.substr(0, 1000))
+                                            : std::string(body));
     CINATRA_LOG_INFO << "[ RESPONSE ]" << req.get_method() << req.full_url()
                      << " Status: " << static_cast<int>(res.status())
                      << " Body:" << sBody;
