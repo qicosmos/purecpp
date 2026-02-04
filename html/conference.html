@@ -10,210 +10,19 @@
     <!-- 本地资源 -->
     <link rel="stylesheet" href="css/pico.min.css">
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="css/purecpp.css">
     <script defer src="script/alpine.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --bg-search: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-        }
-
-        /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --bg-search: #2d2d2d;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-            }
-        }
-
-        /* 全局样式 */
+        /* 确保页脚始终在底部 */
         body {
-            background-color: var(--bg-page) !important;
-            color: var(--text-main) !important;
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
-            margin: 0;
-            padding: 0;
         }
 
-        /* 头部导航 */
-        .page-header {
-            max-width: 1200px;
-            width: 100%;
-            padding: 1rem 2rem;
-            margin: 0 auto;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none !important;
-        }
-
-        .logo img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .logo strong {
-            font-size: 18px !important;
-            color: var(--primary) !important;
-        }
-
-        /* 主要内容容器 */
-        .conference-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        /* 页面标题区域 */
-        .page-header-area {
-            margin-bottom: 1rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-highlight);
-        }
-
-        .page-description {
-            color: var(--muted-color);
-            font-size: 0.9rem;
-        }
-
-        /* 大会列表 */
-        .conferences-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* 文章列表容器 */
-        .articles-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* 大会卡片 */
-        .conference-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .conference-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .conference-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            line-height: 1.4;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        .conference-info {
-            color: var(--muted-color);
-            line-height: 1.6;
-            margin-bottom: 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        /* 大会详情 */
-        .conference-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.85rem;
-        }
-
-        /* 注册按钮 */
-        .register-button {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: var(--primary);
-            color: white;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .register-button:hover {
-            background: var(--primary-hover);
-            color: white;
-        }
-
-        /* 移动端优化 */
-        @media (max-width: 768px) {
-            .conference-container {
-                padding: 1rem;
-            }
-
-            .page-title {
-                font-size: 1.5rem;
-            }
-
-            .conference-card {
-                padding: 1rem;
-            }
-
-            .conference-title {
-                font-size: 1.2rem;
-            }
-
-            .conference-details {
-                font-size: 0.8rem;
-            }
-        }
-
-        /* 隐藏类：用于默认隐藏和JS控制 */
-        .hidden {
-            display: none !important;
-        }
-
-        /* 调整 page-title 避免其 margin 干扰 Flex 布局 */
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0;
-            color: var(--text-highlight);
-        }
-
-        .title-and-button {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
+        main {
+            flex: 1;
         }
     </style>
 </head>
@@ -223,9 +32,9 @@
 <div id="header-container"></div>
 
 <!-- 大会列表主体 -->
-<main class="conference-container">
+<main class="page-wrapper">
     <!-- 大会列表 -->
-    <div class="conferences-list" x-data="conferenceComponent()">
+    <div class="content-list" x-data="conferenceComponent()">
         <div class="page-header-area">
             <div class="title-and-button">
                 <h5 class="page-title">Purecpp 大会</h5>
@@ -240,11 +49,11 @@
             </div>
             <div x-show="!loading" x-transition>
                 <template x-for="article in communityArticles" :key="article.slug">
-                    <div class="conference-card">
-                        <h2 class="conference-title"><a :href="'/article.html?slug=' + article.slug"
+                    <div class="content-card">
+                        <h2 class="content-title"><a :href="'/article.html?slug=' + article.slug"
                                                         style="color: var(--primary); text-decoration: none;"><span
                                 x-text="article.title"></span></a></h2>
-                        <div class="conference-details">
+                        <div class="content-meta">
                             <div class="detail-item">
                                 <i class="fas fa-user"></i>
                                 <span x-text="article.author_name"></span>
@@ -262,34 +71,32 @@
                                 <span x-text="article.comments_count"></span>
                             </div>
                         </div>
-                        <div class="conference-info" x-text="article.summary"></div>
+                        <div class="content-excerpt" x-text="article.summary"></div>
                         <a :href="'/article.html?slug=' + article.slug" class="register-button">阅读全文</a>
                     </div>
                 </template>
                 <template x-else>
-                    <div class="conference-card">
+                    <div class="content-card">
                         <p>暂无大会相关文章</p>
                     </div>
                 </template>
 
                 <!-- 分页控件 -->
                 <template x-if="totalPages > 1">
-                    <div class="pagination"
-                         style="margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem;">
-                        <button class="register-button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)"
-                                :style="currentPage === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''">上一页
-                        </button>
+                    <div class="pagination">
+                        <a class="page-link" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+                            上一页
+                        </a>
 
                         <template x-for="page in totalPages" :key="page">
-                            <button class="register-button"
+                            <a class="page-link"
                                     :style="currentPage === page ? 'background-color: var(--primary-hover);' : ''"
-                                    @click="goToPage(page)" x-text="page"></button>
+                               @click="goToPage(page)" x-text="page"></a>
                         </template>
 
-                        <button class="register-button" :disabled="currentPage === totalPages"
-                                @click="goToPage(currentPage + 1)"
-                                :style="currentPage === totalPages ? 'opacity: 0.5; cursor: not-allowed;' : ''">下一页
-                        </button>
+                        <a class="page-link" :disabled="currentPage === totalPages"
+                           @click="goToPage(currentPage + 1)">下一页
+                        </a>
                     </div>
                 </template>
             </div>
@@ -299,6 +106,7 @@
 
 <!-- 统一页脚占位符 -->
 <div id="footer-container"></div>
+
 <!-- API服务脚本 -->
 <script src="script/api_service.js"></script>
 <!-- 统一布局脚本（包含用户信息管理功能） -->

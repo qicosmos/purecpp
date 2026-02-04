@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
     <link rel="stylesheet" href="css/simplemde.min.css">
     <link rel="stylesheet" href="css/atom-one-dark.min.css">
+    <!-- PureCpp 统一样式 -->
+    <link rel="stylesheet" href="css/purecpp.css">
 
     <script src="script/simplemde.min.js"></script>
     <script src="script/highlight.min.js"></script>
@@ -16,33 +18,20 @@
     <script defer src="script/alpine.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --bg-search: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
+        /* 确保页脚始终在底部 */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 20px;
         }
 
-        /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --bg-search: #2d2d2d;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-            }
+        main {
+            flex: 1;
         }
 
         body {
-            padding-top: 20px;
-            background-color: var(--pico-background-color) !important;
+            background-color: var(--bg-page) !important;
         }
 
         .container {
@@ -70,7 +59,7 @@
             margin-bottom: 2rem;
         }
 
-        /* 核心修改：白色背景代码块样式 */
+        /* 核心修改：代码块样式 */
         .article-content pre {
             background: var(--code-background) !important;
             border: 1px solid var(--code-border) !important;
@@ -98,6 +87,7 @@
 
         .article-content p {
             margin-bottom: 1rem;
+            color: var(--text-main) !important;
         }
 
         .article-content blockquote {
@@ -105,10 +95,135 @@
             padding-left: 1rem;
             color: var(--muted-color);
             margin: 1rem 0;
-            background: #f9fafb !important;
-            /* 引用块也适配浅色 */
+            background: var(--bg-card) !important;
+            /* 引用块适配主题 */
             padding: 1rem !important;
             border-radius: 4px !important;
+        }
+
+        /* 内容预览区域主题适配 */
+        .content-preview {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+        }
+
+        /* 审核卡片主题适配 */
+        .review-card {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            padding: 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        /* 确保预览内容中的所有元素都使用主题变量 */
+        .content-preview h1,
+        .content-preview h2,
+        .content-preview h3,
+        .content-preview h4,
+        .content-preview h5,
+        .content-preview h6 {
+            color: var(--primary) !important;
+        }
+
+        .content-preview p,
+        .content-preview ul,
+        .content-preview ol,
+        .content-preview li {
+            color: var(--text-main) !important;
+        }
+
+        /* 确保预览内容中的代码块和引用块使用主题变量 */
+        .content-preview pre {
+            background: var(--code-background) !important;
+            border: 1px solid var(--code-border) !important;
+            padding: 1rem !important;
+            border-radius: 8px !important;
+            overflow-x: auto !important;
+            margin: 1rem 0 !important;
+        }
+
+        .content-preview blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            color: var(--muted-color);
+            margin: 1rem 0;
+            background: var(--bg-card) !important;
+            padding: 1rem !important;
+            border-radius: 4px !important;
+        }
+
+        /* 搜索图标悬停时的主题适配 */
+        .search-icon:hover {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.1) !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* 确保审核意见文本框使用主题变量 */
+        textarea {
+            background-color: var(--bg-search) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        /* 确保无权限提示使用主题变量 */
+        .alert {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        /* 确保审核按钮使用主题变量 */
+        button {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        button.primary {
+            background-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        button.secondary {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        button.secondary.outline {
+            background-color: transparent !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        /* 确保文章标题使用主题变量 */
+        .review-card strong {
+            color: var(--text-main) !important;
+        }
+
+        /* 确保所有 strong 标签使用主题变量 */
+        strong {
+            color: var(--text-main) !important;
+        }
+
+        /* 确保 review-card 中的 header 元素使用主题变量 */
+        .review-card header {
+            background-color: var(--bg-card) !important;
+            padding: 1rem !important;
+            border-radius: 8px 8px 0 0 !important;
+        }
+
+        /* 确保 review-card 中的所有子元素使用主题变量 */
+        .review-card * {
+            background-color: transparent !important;
+        }
+
+        /* 修复 content-preview 中的边框颜色变量 */
+        .content-preview {
+            border-top: 1px solid var(--border-color) !important;
         }
 
         .page-header {
@@ -274,10 +389,11 @@
 </head>
 
 <body>
-<div class="page-wrapper">
+<!-- 统一页头占位符 -->
     <div id="header-container"></div>
 
-    <main class="articles-container" x-data="adminReviewComponent()">
+<!-- 主要内容 -->
+<main class="page-wrapper" x-data="adminReviewComponent()">
         <div class="articles-list">
             <div class="page-header-area">
                 <div class="title-and-button">
@@ -400,9 +516,9 @@
             </div>
         </div>
     </main>
-    <!-- 统一页脚占位符 -->
+
+<!-- 统一页脚占位符 -->
     <div id="footer-container"></div>
-</div>
 <!-- API服务脚本 -->
 <script src="script/api_service.js"></script>
 <!-- 统一布局脚本 -->
