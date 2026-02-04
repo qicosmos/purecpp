@@ -15,21 +15,6 @@
     <script defer src="script/alpine.js"></script>
 
     <style>
-        /* 文章列表特定样式 */
-        .articles-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        /* 标题和按钮布局 */
-        .title-and-button {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
         /* 搜索框特定样式 */
         .search-box {
             margin-top: 1rem;
@@ -44,7 +29,7 @@
     <!-- 文章列表主体 -->
     <main class="page-wrapper">
         <!-- 文章列表 -->
-        <div class="articles-list" x-data="articleComponent()">
+        <div class="content-list" x-data="articleComponent()">
             <div class="page-header-area">
                 <div class="title-and-button">
                     <h5 class="page-title">技术文章</h5>
@@ -65,14 +50,14 @@
             </div>
             <template x-for="article in articles" :key="article.slug">
                 <!-- 单篇文章卡片 -->
-                <article class="article-card">
-                    <h2 class="article-title" style="display: flex; align-items: center;">
+                <article class="content-card">
+                    <h2 class="content-title" style="display: flex; align-items: center;">
                         <!-- 使用 :href 动态绑定链接 -->
                         <a :href="'/article.html?slug=' + article.slug" x-text="article.title"></a>
                     </h2>
-                    <p class="article-excerpt" x-text="article.summary"></p>
+                    <p class="content-excerpt" x-text="article.summary"></p>
                     <!-- 标签列表循环 -->
-                    <div class="article-tags">
+                    <div class="content-tags">
                         <template x-if="article.tag_ids">
                             <template x-for="tagId in article.tag_ids.split('|')" :key="tagId">
                                 <template x-if="getTagName(tagId)">
@@ -84,21 +69,21 @@
                     </div>
 
                     <!-- 元信息绑定 -->
-                    <div class="article-meta">
-                        <div class="meta-item">
+                    <div class="content-meta">
+                        <div class="detail-item">
                             <i class="fas fa-user"></i>
                             <a href="#" class="username-hover" x-text="article.author_name"
                                @click.prevent="filterByAuthor(article.author_id, article.author_name)"></a>
                         </div>
-                        <div class="meta-item">
+                        <div class="detail-item">
                             <i class="fas fa-calendar"></i>
                             <span x-text="formatDate(article.created_at)"></span>
                         </div>
-                        <div class="meta-item">
+                        <div class="detail-item">
                             <i class="fas fa-eye"></i>
                             <span x-text="article.views_count + ' 阅读'"></span>
                         </div>
-                        <div class="meta-item">
+                        <div class="detail-item">
                             <i class="fas fa-comment"></i>
                             <span x-text="article.comments_count + ' 评论'"></span>
                         </div>

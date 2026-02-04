@@ -303,27 +303,27 @@ nav .contrast:hover {
 }
 
 .article-title {
-    font-size: 1.6rem !important;
+    font-size: 1.4rem;
     font-weight: 600;
     line-height: 1.4;
-    color: var(--text-main);
-    margin-bottom: 0.8rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
 }
 
 .article-title a {
-    color: inherit;
+    color: var(--primary);
     text-decoration: none;
 }
 
 .article-title a:hover {
-    color: var(--primary);
+    color: var(--primary-hover);
 }
 
 .article-excerpt {
     color: var(--muted-color);
     line-height: 1.6;
     margin-bottom: 0.8rem;
-    font-size: 1.0rem;
+    font-size: 0.9rem;
 }
 
 /* 标签 */
@@ -935,7 +935,7 @@ nav .contrast:hover {
         animation: show-cursor 0s 1.8s forwards, blink 1s step-end infinite 1.8s, fade-out 0s 3.6s forwards !important;
     }
 
-    .articles-container {
+    .content-container {
         padding: 1rem;
     }
 
@@ -943,15 +943,15 @@ nav .contrast:hover {
         font-size: 1.0rem;
     }
 
-    .article-card {
+    .content-card {
         padding: 1rem;
     }
 
-    .article-title {
+    .content-title {
         font-size: 1.1rem;
     }
 
-    .article-meta {
+    .content-meta {
         font-size: 0.8rem;
     }
 }
@@ -962,6 +962,113 @@ nav .contrast:hover {
     font-size: 0.85rem !important;
     height: auto !important;
     white-space: nowrap;
+}
+
+/* 内容容器样式 */
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* 内容列表样式 */
+.content-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* 内容卡片样式 */
+.content-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.content-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 内容标题样式 */
+.content-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.content-title a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.content-title a:hover {
+    color: var(--primary-hover);
+}
+
+/* 内容摘要样式 */
+.content-excerpt {
+    color: var(--muted-color);
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+}
+
+/* 内容元信息样式 */
+.content-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+/* 内容标签样式 */
+.content-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+/* 注册按钮 */
+.register-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.register-button:hover {
+    background: var(--primary-hover);
+    color: white;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .content-container {
+        padding: 1rem;
+    }
+
+    .content-card {
+        padding: 1rem;
+    }
+
+    .content-title {
+        font-size: 1.1rem;
+    }
+
+    .content-meta {
+        font-size: 0.8rem;
+    }
 }
 
 /* 精华文章标题样式 */
