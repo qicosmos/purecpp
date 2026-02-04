@@ -347,7 +347,8 @@ public:
     for (const auto &tag : tech_articles_tags) {
       int tag_id = std::get<0>(tag);
       if (first) {
-        col_tags = col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
+        col_tags =
+            col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
         first = false;
       } else {
         col_tags =
@@ -800,7 +801,8 @@ public:
     for (const auto &tag : services_tags) {
       int tag_id = std::get<0>(tag);
       if (first) {
-        col_tags = col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
+        col_tags =
+            col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
         first = false;
       } else {
         col_tags =
@@ -900,7 +902,8 @@ public:
     for (const auto &tag : cpp_party_tags) {
       int tag_id = std::get<0>(tag);
       if (first) {
-        col_tags = col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
+        col_tags =
+            col(&articles_t::tag_ids).like("%" + std::to_string(tag_id) + "%");
         first = false;
       } else {
         col_tags =
