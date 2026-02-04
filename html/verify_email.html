@@ -9,36 +9,23 @@
 
     <!-- 本地资源（与主站一致） -->
     <link rel="stylesheet" href="css/pico.min.css">
+    <!-- PureCpp 统一样式 -->
+    <link rel="stylesheet" href="css/purecpp.css">
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
     <script defer src="script/alpine.js"></script>
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
             --success-color: #10b981;
             --error-color: #ef4444;
             --warning-color: #f59e0b;
         }
 
         /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-                --success-color: #34d399;
-                --error-color: #f87171;
-                --warning-color: #fbbf24;
-            }
+        :root.dark {
+            --success-color: #34d399;
+            --error-color: #f87171;
+            --warning-color: #fbbf24;
         }
 
         body {

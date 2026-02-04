@@ -10,65 +10,26 @@
     <!-- 本地资源 -->
     <link rel="stylesheet" href="css/pico.min.css">
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="css/purecpp.css">
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-            --input-bg: #f9fafb;
             --error-color: #ef4444;
             --success-color: #10b981;
             --transition: all 0.2s ease;
         }
 
-        /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-                --input-bg: #2d2d2d;
-            }
-        }
-
-        /* 手动主题切换支持（与layout.js保持一致） */
-        :root.dark {
-            --bg-page: #121212;
-            --bg-card: #1e1e1e;
-            --text-main: #f3f4f6;
-            --text-highlight: #818cf8;
-            --border-color: #374151;
-            --input-bg: #2d2d2d;
-        }
-
-        :root.light {
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-            --border-color: #e2e8f0;
-            --input-bg: #f9fafb;
-        }
-
-        /* 全局样式 */
+        /* 确保页脚始终在底部 */
         body {
-            background-color: var(--bg-page);
-            color: var(--text-main);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            margin: 0;
-            padding: 0;
+            min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
             line-height: 1.5;
+        }
+
+        main {
+            flex: 1;
         }
 
         /* 登录容器 */
@@ -133,7 +94,7 @@
             padding: 0.6rem 0.8rem;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            background: var(--input-bg);
+            background: var(--bg-search);
             color: var(--text-main);
             font-size: 0.9rem;
             box-sizing: border-box;
@@ -306,11 +267,11 @@
 </head>
 
 <body>
-    <div class="page-wrapper">
-        <!-- 统一页头占位符 -->
-        <div id="header-container"></div>
+<!-- 统一页头占位符 -->
+<div id="header-container"></div>
 
-        <!-- 登录主体 -->
+<!-- 登录主体 -->
+<main class="page-wrapper">
         <div class="main-container">
             <div class="main-card">
                 <h2>账号登录</h2>
@@ -355,10 +316,10 @@
                 </form>
             </div>
         </div>
+</main>
 
-        <!-- 统一页脚占位符 -->
-        <div id="footer-container"></div>
-    </div>
+<!-- 统一页脚占位符 -->
+<div id="footer-container"></div>
     <!-- API服务脚本 -->
     <script src="script/api_service.js"></script>
     <!-- 统一布局脚本 -->

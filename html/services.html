@@ -10,66 +10,19 @@
     <!-- 本地资源 -->
     <link rel="stylesheet" href="css/pico.min.css">
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="css/purecpp.css">
     <script defer src="script/alpine.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --bg-search: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-        }
-
-        /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --bg-search: #2d2d2d;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-            }
-        }
-
-        /* 全局样式 */
+        /* 确保页脚始终在底部 */
         body {
-            background-color: var(--bg-page) !important;
-            color: var(--text-main) !important;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 头部导航 */
-        .page-header {
-            max-width: 1200px;
-            width: 100%;
-            padding: 1rem 2rem;
-            margin: 0 auto;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none !important;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        .logo img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .logo strong {
-            font-size: 18px !important;
-            color: var(--primary) !important;
+        main {
+            flex: 1;
         }
 
         /* 主要内容容器 */
@@ -77,23 +30,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 1rem;
-        }
-
-        /* 页面标题区域 */
-        .page-header-area {
-            margin-bottom: 1rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-highlight);
-        }
-
-        .page-description {
-            color: var(--muted-color);
-            font-size: 0.9rem;
         }
 
         /* 服务列表 */
@@ -133,21 +69,6 @@
             line-height: 1.6;
             margin-bottom: 0.8rem;
             font-size: 0.9rem;
-        }
-
-        /* 服务详情 */
-        .service-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.85rem;
         }
 
         /* 操作按钮 */
@@ -209,10 +130,6 @@
                 padding: 1rem;
             }
 
-            .page-title {
-                font-size: 1.5rem;
-            }
-
             .service-card {
                 padding: 1rem;
             }
@@ -221,33 +138,9 @@
                 font-size: 1.2rem;
             }
 
-            .service-details {
-                font-size: 0.8rem;
-            }
-
             .service-items {
                 grid-template-columns: 1fr;
             }
-        }
-
-        /* 隐藏类：用于默认隐藏和JS控制 */
-        .hidden {
-            display: none !important;
-        }
-
-        /* 调整 page-title 避免其 margin 干扰 Flex 布局 */
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0;
-            color: var(--text-highlight);
-        }
-
-        .title-and-button {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -257,7 +150,7 @@
 <div id="header-container"></div>
 
 <!-- 服务列表主体 -->
-<main class="services-container">
+<main class="page-wrapper">
     <!-- 服务列表 -->
     <div class="services-list" x-data="serviceComponent()" x-init="init()">
         <div class="page-header-area">
@@ -314,6 +207,7 @@
 
 <!-- 统一页脚占位符 -->
 <div id="footer-container"></div>
+
 <!-- API服务脚本 -->
 <script src="script/api_service.js"></script>
 <!-- 统一布局脚本（包含用户信息管理功能） -->

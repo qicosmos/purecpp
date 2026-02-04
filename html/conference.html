@@ -10,66 +10,19 @@
     <!-- 本地资源 -->
     <link rel="stylesheet" href="css/pico.min.css">
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="css/purecpp.css">
     <script defer src="script/alpine.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            --bg-page: #ffffff;
-            --bg-card: #ffffff;
-            --bg-search: #ffffff;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-        }
-
-        /* 深色模式 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-page: #121212;
-                --bg-card: #1e1e1e;
-                --bg-search: #2d2d2d;
-                --text-main: #f3f4f6;
-                --text-highlight: #818cf8;
-                --border-color: #374151;
-            }
-        }
-
-        /* 全局样式 */
+        /* 确保页脚始终在底部 */
         body {
-            background-color: var(--bg-page) !important;
-            color: var(--text-main) !important;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 头部导航 */
-        .page-header {
-            max-width: 1200px;
-            width: 100%;
-            padding: 1rem 2rem;
-            margin: 0 auto;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none !important;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        .logo img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .logo strong {
-            font-size: 18px !important;
-            color: var(--primary) !important;
+        main {
+            flex: 1;
         }
 
         /* 主要内容容器 */
@@ -79,32 +32,8 @@
             padding: 1rem;
         }
 
-        /* 页面标题区域 */
-        .page-header-area {
-            margin-bottom: 1rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-highlight);
-        }
-
-        .page-description {
-            color: var(--muted-color);
-            font-size: 0.9rem;
-        }
-
         /* 大会列表 */
         .conferences-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* 文章列表容器 */
-        .articles-container {
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -179,10 +108,6 @@
                 padding: 1rem;
             }
 
-            .page-title {
-                font-size: 1.5rem;
-            }
-
             .conference-card {
                 padding: 1rem;
             }
@@ -195,26 +120,6 @@
                 font-size: 0.8rem;
             }
         }
-
-        /* 隐藏类：用于默认隐藏和JS控制 */
-        .hidden {
-            display: none !important;
-        }
-
-        /* 调整 page-title 避免其 margin 干扰 Flex 布局 */
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0;
-            color: var(--text-highlight);
-        }
-
-        .title-and-button {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
     </style>
 </head>
 
@@ -223,7 +128,7 @@
 <div id="header-container"></div>
 
 <!-- 大会列表主体 -->
-<main class="conference-container">
+<main class="page-wrapper">
     <!-- 大会列表 -->
     <div class="conferences-list" x-data="conferenceComponent()">
         <div class="page-header-area">
@@ -299,6 +204,7 @@
 
 <!-- 统一页脚占位符 -->
 <div id="footer-container"></div>
+
 <!-- API服务脚本 -->
 <script src="script/api_service.js"></script>
 <!-- 统一布局脚本（包含用户信息管理功能） -->

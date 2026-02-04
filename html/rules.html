@@ -10,48 +10,21 @@
     <!-- 本地 Pico CSS -->
     <link rel="stylesheet" href="css/pico.min.css">
 
+    <!-- PureCpp 统一样式 -->
+    <link rel="stylesheet" href="css/purecpp.css">
+
     <!-- 本地 Font Awesome -->
     <link rel="stylesheet" href="font-awesome/css/all.min.css">
     <script defer src="script/alpine.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --border-color: #e2e8f0;
-            --muted-color: #6b7280;
-            /* 白天模式变量（默认） */
-            --bg-page: #ffffff;
-            --bg-hero: #d6def9;
-            --bg-announcement: #e6ebff;
-            --bg-card: #ffffff;
-            --bg-search: #ffffff;
-            --text-typing: #000000;
-            --text-main: #333;
-            --text-highlight: var(--primary);
-        }
-
-        /* 深色模式变量（统一合并，覆盖系统+手动切换） */
-        :root.dark {
-            --bg-page: #121212;
-            --bg-hero: #1e2238;
-            --bg-announcement: #2a2f4c;
-            --bg-card: #1e1e1e;
-            --bg-search: #2d2d2d;
-            --text-typing: #f3f4f6;
-            --text-main: #f3f4f6;
-            --text-highlight: #818cf8;
-            --logo-filter: invert(1) hue-rotate(180deg) brightness(1.8);
-            /* logo反转调亮 */
-        }
-
-        /* 浅色模式变量（手动切换时覆盖） */
-        :root.light {
-            --logo-filter: none;
-            /* 浅色模式不反转logo */
-        }
-
         /* 核心布局：外层容器统一留白，内部模块满宽 */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
         .page-wrapper {
             max-width: 1200px !important;
             width: 100% !important;
