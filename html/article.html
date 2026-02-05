@@ -73,9 +73,9 @@
         <div x-show="currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin') && !isLoading && !errorMessage && article.title"
              @click="toggleFeatured()"
              style="position: fixed; right: 50px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 1000; margin: 0; padding: 0; border: none; background: transparent; overflow: visible;">
-            <img :src="article.tag_ids.includes('108') ? 'images/recommend.png' : 'images/recommend.png'"
-                 :style="article.tag_ids.includes('108') ? 'width: 64px; height: 64px; opacity: 1; display: block; background: transparent;' : 'width: 64px; height: 64px; opacity: 0.6; display: block; background: transparent;'"
-                 :title="article.tag_ids.includes('108') ? '取消精华' : '加精华'"
+            <img :src="(article.tag_ids && article.tag_ids.includes('108')) ? 'images/recommend.png' : 'images/recommend.png'"
+                 :style="(article.tag_ids && article.tag_ids.includes('108')) ? 'width: 64px; height: 64px; opacity: 1; display: block; background: transparent;' : 'width: 64px; height: 64px; opacity: 0.6; display: block; background: transparent;'"
+                 :title="(article.tag_ids && article.tag_ids.includes('108')) ? '取消精华' : '加精华'"
                  style="margin: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
         </div>
 

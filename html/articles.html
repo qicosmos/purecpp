@@ -368,7 +368,7 @@
                         window.history.pushState({}, '', `?${urlParams.toString()}`);
                         // 触发文章列表的刷新
                         console.log("Navigating to page:", page);
-                        const articleComponent = document.querySelector('.articles-list')._x_dataStack[0];
+                        const articleComponent = document.querySelector('.content-list')._x_dataStack[0];
                         if (articleComponent) {
                             // 传递当前标签、用户ID和搜索关键词
                             articleComponent.fetchArticles(page, articleComponent.currentTag, articleComponent.currentUserId, articleComponent.searchKeyword);
@@ -379,11 +379,11 @@
         }
 
         // 文章点击统计
-        document.querySelectorAll('.article-card').forEach(card => {
+        document.querySelectorAll('.content-card').forEach(card => {
             card.addEventListener('click', function (e) {
                 // 如果不是点击链接，则跳转到文章
                 if (!e.target.closest('a')) {
-                    const link = this.querySelector('.article-title a');
+                    const link = this.querySelector('.content-title a');
                     if (link) {
                         // 可以在这里添加点击统计
                         recordArticleClick(link.href);
@@ -492,7 +492,7 @@
                 // 在Alpine.js渲染完成后执行
                 setTimeout(() => {
                     // 为articles.html中的用户名添加悬停事件
-                    document.querySelectorAll('.article-meta .meta-item:nth-child(1) span').forEach(usernameElement => {
+                    document.querySelectorAll('.content-meta .detail-item:nth-child(1) span').forEach(usernameElement => {
                         usernameElement.className = 'username-hover';
                         usernameElement.addEventListener('mouseenter', function (e) {
                             const username = this.textContent.trim();
