@@ -414,5 +414,9 @@ int main() {
   server.set_http_handler<POST>("/api/v1/toggle_featured",
                                 &articles::toggle_featured, article,
                                 log_request_response{}, check_token{});
+
+  // 获取统计数据路由
+  server.set_http_handler<GET>("/api/v1/stats", &articles::get_stats, article,
+                               log_request_response{});
   server.sync_start();
 }

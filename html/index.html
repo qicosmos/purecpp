@@ -249,11 +249,11 @@
     <section class="stats">
         <div class="stats-grid">
             <div>
-                <span class="stat-number">12,687</span>
+                <span class="stat-number" id="user-count">12,687</span>
                 <div>注册会员</div>
             </div>
             <div>
-                <span class="stat-number">3,856</span>
+                <span class="stat-number" id="article-count">3,856</span>
                 <div>技术文章</div>
             </div>
             <div>
@@ -261,7 +261,7 @@
                 <div>已解决问题</div>
             </div>
             <div>
-                <span class="stat-number">1,2000+</span>
+                <span class="stat-number" id="conference-attendees">1,2000+</span>
                 <div>参会人数</div>
             </div>
         </div>
@@ -286,6 +286,28 @@
                 showAlert('请输入搜索关键词');
             }
         }
+
+        // 获取统计数据
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/v1/stats');
+                if (!response.ok) {
+                    throw new Error('获取统计数据失败');
+                }
+                const data = await response.json();
+                if (data.success && data.data) {
+                    // 更新注册会员数
+                    document.getElementById('user-count').textContent = data.data.user_count.toLocaleString();
+                    // 更新技术文章数
+                    document.getElementById('article-count').textContent = data.data.article_count.toLocaleString();
+                }
+            } catch (error) {
+                console.error('获取统计数据失败:', error);
+            }
+        }
+
+        // 页面加载时获取统计数据
+        window.addEventListener('load', fetchStats);
     </script>
 </body>
 
