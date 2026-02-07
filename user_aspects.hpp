@@ -89,7 +89,7 @@ std::string cleanup_markdown(const std::string &markdown_text) {
 
   // 3. 清理代码块和行内代码 (```code``` or `code`)
   text = std::regex_replace(text, std::regex("```[\\s\\S]*?```"),
-                            ""); // 移除代码块
+                            "");                                // 移除代码块
   text = std::regex_replace(text, std::regex("`(.*?)`"), "$1"); // 行内代码
 
   // 4. 清理标题 (# H1, ## H2, etc.)
@@ -422,7 +422,7 @@ inline constexpr std::array<std::string_view, 6> ALLOWED_EXTENSIONS = {
 inline size_t MAX_FILE_SIZE = 1024 * 1024 * 4;
 
 struct upload_file_info {
-  int user_id;
+  uint64_t user_id;
   std::string_view file_data;
   std::string_view filename;
 };
