@@ -76,4 +76,10 @@ struct user_comment_item {
   uint64_t updated_at;
 };
 
+// 构建统计数据响应
+struct stats_data {
+  int user_count;
+  int article_count;
+};
+
 } // namespace purecpp

@@ -55,6 +55,76 @@
         .search-box {
             margin-bottom: 0.5rem;
         }
+
+        /* 表情相关样式 */
+        .emoji-reaction {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-reaction:hover {
+            background-color: var(--bg-secondary);
+            transform: translateY(-1px);
+        }
+
+        .emoji-reaction.reacted {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .emoji-reaction i {
+            font-size: 1rem;
+        }
+
+        .reaction-emoji {
+            display: inline-block;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 0 0.25rem;
+            transition: transform 0.2s ease;
+        }
+
+        .reaction-emoji:hover {
+            transform: scale(1.2);
+        }
+
+        .emoji-picker {
+            display: none;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-card);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 480px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .emoji-item {
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-item:hover {
+            background-color: var(--bg-secondary);
+            transform: scale(1.2);
+        }
     </style>
 </head>
 
@@ -87,10 +157,12 @@
 
                 <div class="article-meta">
                     <span><i class="fas fa-user"></i> <span x-text="article.author_name"></span></span>
-                    <span><i class="fas fa-tag"></i> 
-                        <template x-for="tagId in article.tag_ids.split('|')" :key="tagId">
-                            <template x-if="getTagName(tagId)">
-                                <span class="tag" style="margin-right: 5px;" x-text="getTagName(tagId)"></span>
+                    <span><i class="fas fa-tag"></i>
+                        <template x-if="article.tag_ids">
+                            <template x-for="tagId in article.tag_ids.split('|')" :key="tagId">
+                                <template x-if="getTagName(tagId)">
+                                    <span class="tag" style="margin-right: 5px;" x-text="getTagName(tagId)"></span>
+                                </template>
                             </template>
                         </template>
                     </span>
@@ -122,7 +194,8 @@
                             <!-- 触发按钮 -->
                             <button type="button" @click="open = !open"
                                     style="width: 100%; text-align: left; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-card); color: var(--text-main); padding: 0.5rem 0.8rem; height: 46px; box-sizing: border-box;">
-                                <template x-if="selectedTagIds.length === 0"><span style="color: var(--muted-color);">请选择选项</span>
+                                <template x-if="selectedTagIds.length === 0"><span
+                                        style="color: var(--muted-color);">请选择选项</span>
                                 </template>
                                 <template x-if="selectedTagIds && selectedTagIds.length > 0">
                                     <span x-text="getSelectedTagNames()"></span>
@@ -154,8 +227,15 @@
                 <div class="comment-form" x-show="currentUser"
                      style="margin-bottom: 2rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px;">
                     <h3>发表评论</h3>
-                    <textarea x-model="newCommentContent" rows="4" placeholder="写下你的评论..."
-                              style="width: 100%; margin-bottom: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;"></textarea>
+                    <div style="position: relative; margin-bottom: 1rem;">
+                        <textarea x-model="newCommentContent" rows="4" placeholder="写下你的评论..."
+                                  style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;"></textarea>
+                        <div class="emoji-picker" id="emoji-picker"></div>
+                        <button class="action-button" id="emoji-btn" title="表情"
+                                style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
+                            😊
+                        </button>
+                    </div>
                     <div style="display: flex; justify-content: flex-end;">
                         <button @click="submitComment" :disabled="!newCommentContent.trim()"
                                 style="padding: 0.5rem 1rem; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -201,7 +281,16 @@
 
                             <!-- 回复表单 -->
                             <div class="reply-form" x-show="replyTo === comment.comment_id">
-                                <textarea x-model="replyContent" rows="3" placeholder="回复评论..."></textarea>
+                                <div style="position: relative; margin-bottom: 1rem;">
+                                    <textarea x-model="replyContent" rows="3" placeholder="回复评论..."></textarea>
+                                    <div class="emoji-picker" :id="'emoji-picker-reply-' + comment.comment_id"></div>
+                                    <button class="action-button" :id="'emoji-btn-reply-' + comment.comment_id"
+                                            title="表情"
+                                            style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer;"
+                                            @click="showEmojiPicker('reply-' + comment.comment_id, $event)">
+                                        😊
+                                    </button>
+                                </div>
                                 <div class="reply-form-actions">
                                     <button @click="cancelReply" class="reply-form-cancel">取消</button>
                                     <button @click="submitReply(comment.comment_id)" :disabled="!replyContent.trim()"
@@ -241,13 +330,22 @@
 
                                         <!-- 子评论的回复表单 -->
                                         <div class="reply-form" x-show="replyTo === child.comment_id">
-                                            <textarea x-model="replyContent" rows="2"
-                                                      placeholder="回复评论..."></textarea>
+                                            <div style="position: relative; margin-bottom: 1rem;">
+                                                <textarea x-model="replyContent" rows="2"
+                                                          placeholder="回复评论..."></textarea>
+                                                <div class="emoji-picker"
+                                                     :id="'emoji-picker-reply-' + child.comment_id"></div>
+                                                <button class="action-button"
+                                                        :id="'emoji-btn-reply-' + child.comment_id" title="表情"
+                                                        style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer;"
+                                                        @click="showEmojiPicker('reply-' + child.comment_id, $event)">
+                                                    😊
+                                                </button>
+                                            </div>
                                             <div class="reply-form-actions">
                                                 <button @click="cancelReply" class="reply-form-cancel">取消</button>
                                                 <button @click="submitReply(child.comment_id)"
-                                                        :disabled="!replyContent.trim()"
-                                                        class="reply-form-submit">回复
+                                                        :disabled="!replyContent.trim()" class="reply-form-submit">回复
                                                 </button>
                                             </div>
                                         </div>
@@ -459,6 +557,60 @@
                 replyTo: null,
                 replyContent: '',
 
+                // 表情相关方法
+                showEmojiPicker(pickerId, event) {
+                    event.stopPropagation();
+
+                    // 隐藏所有其他表情选择器
+                    document.querySelectorAll('.emoji-picker').forEach(picker => {
+                        picker.style.display = 'none';
+                    });
+
+                    const emojiPicker = document.getElementById('emoji-picker' + (pickerId ? '-' + pickerId : ''));
+                    if (!emojiPicker) return;
+
+                    if (emojiPicker.style.display === 'grid') {
+                        emojiPicker.style.display = 'none';
+                        return;
+                    }
+
+                    // 清空并重新填充表情
+                    emojiPicker.innerHTML = '';
+                    commonEmojis.forEach(emoji => {
+                        const span = document.createElement('span');
+                        span.className = 'emoji-item';
+                        span.textContent = emoji;
+                        span.addEventListener('click', () => {
+                            if (pickerId && pickerId.startsWith('reply-')) {
+                                this.insertAtCursor('replyContent', emoji);
+                            } else {
+                                this.insertAtCursor('newCommentContent', emoji);
+                            }
+                            emojiPicker.style.display = 'none';
+                        });
+                        emojiPicker.appendChild(span);
+                    });
+
+                    // 定位表情选择器
+                    const btn = event.currentTarget;
+                    const rect = btn.getBoundingClientRect();
+                    const container = btn.closest('div');
+                    const containerRect = container.getBoundingClientRect();
+
+                    emojiPicker.style.position = 'absolute';
+                    emojiPicker.style.bottom = `${containerRect.bottom - rect.top + 10}px`;
+                    emojiPicker.style.right = `${containerRect.right - rect.right}px`;
+                    emojiPicker.style.display = 'grid';
+                },
+
+                insertAtCursor(fieldName, emoji) {
+                    if (fieldName === 'newCommentContent') {
+                        this.newCommentContent += emoji;
+                    } else if (fieldName === 'replyContent') {
+                        this.replyContent += emoji;
+                    }
+                },
+
                 get pageTitle() {
                     return this.article.title ? `${this.article.title} - PureCpp社区` : '文章详情 - PureCpp社区';
                 },
@@ -576,6 +728,28 @@
                 async init() {
                     await this.fetchTags();
                     await this.fetchArticle();
+
+                    // 初始化表情按钮事件
+                    this.initEmojiButtons();
+                },
+
+                initEmojiButtons() {
+                    // 主评论表单的表情按钮
+                    const emojiBtn = document.getElementById('emoji-btn');
+                    if (emojiBtn) {
+                        emojiBtn.addEventListener('click', (event) => {
+                            this.showEmojiPicker('', event);
+                        });
+                    }
+
+                    // 点击页面其他地方关闭表情选择器
+                    document.addEventListener('click', (event) => {
+                        if (!event.target.closest('.action-button') && !event.target.closest('.emoji-picker')) {
+                            document.querySelectorAll('.emoji-picker').forEach(picker => {
+                                picker.style.display = 'none';
+                            });
+                        }
+                    });
                 },
 
                 async fetchTags() {
@@ -770,7 +944,6 @@
                         const rootComment = getParentComment(comment.parent_comment_id);
                         return rootComment && rootComment.comment_id === parentId;
                     });
-
                     // 按照创建时间排序，时间越大（越新）的评论展示越靠前
                     return childComments.sort((a, b) => b.created_at - a.created_at);
                 },

@@ -1117,5 +1117,36 @@ public:
     std::string json = make_success(message);
     resp.set_status_and_content(status_type::ok, std::move(json));
   }
+
+  // 获取统计数据
+  void get_stats(coro_http_request &req, coro_http_response &resp) {
+    auto &config = purecpp_config::get_instance();
+    auto conn = connection_pool<dbng<mysql>>::instance().get();
+    if (conn == nullptr) {
+      set_server_internel_error(resp);
+      return;
+    }
+
+    // 获取注册会员数
+    int user_count = conn->select(ormpp::count()).from<users_t>().collect();
+
+    // 获取技术文章数
+    int article_count =
+        conn->select(ormpp::count()).from<articles_t>().collect();
+
+    // 参会人数（这里使用模拟数据，实际项目中可能需要从专门的表中获取）
+    int conference_attendees = 12000;
+
+    stats_data data{.user_count =
+                        user_count + config.user_cfg_.default_user_count,
+                    .article_count = article_count};
+
+    std::string json = make_data(data, "获取统计数据成功");
+    if (json.empty()) {
+      set_server_internel_error(resp);
+      return;
+    }
+    resp.set_status_and_content(status_type::ok, std::move(json));
+  }
 };
 } // namespace purecpp
