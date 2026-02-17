@@ -195,13 +195,52 @@ int main() {
 
   auto &db_pool = connection_pool<dbng<mysql>>::instance();
 
-  coro_http_server server(std::thread::hardware_concurrency(), 3389);
+  coro_http_server server(std::thread::hardware_concurrency(), 443);
+  server.init_ssl("purecpp.pem", "purecpp.key");
   server.set_file_resp_format_type(file_resp_format_type::chunked);
   server.set_static_res_dir("", "html");
   server.set_http_handler<GET, POST>(
-      "/", [](coro_http_request &req, coro_http_response &resp) {
-        resp.set_status_and_content(status_type::ok,
-                                    make_data(empty_data{}, "hello purecpp"));
+      "/",
+      [](coro_http_request &req,
+         coro_http_response &resp) -> async_simple::coro::Lazy<void> {
+        auto url = req.get_url();
+        std::string file_name = "html/index.html";
+        coro_io::coro_file in_file{};
+        if (!in_file.open(file_name, std::ios::in)) {
+          resp.set_status(status_type::not_found);
+          co_return;
+        }
+        std::string_view extension = get_extension(file_name);
+        std::string_view mime = get_mime_type(extension);
+        resp.add_header("Content-Type", std::string{mime});
+        resp.set_format_type(format_type::chunked);
+
+        // 开始chunked传输
+        if (!co_await resp.get_conn()->begin_chunked()) {
+          co_return;
+        }
+        std::string content;
+        cinatra::detail::resize(content, in_file.file_size());
+        while (true) {
+          auto [ec, size] =
+              co_await in_file.async_read(content.data(), content.size());
+          if (ec) {
+            resp.set_status(status_type::no_content);
+            co_await resp.get_conn()->reply();
+            co_return;
+          }
+
+          bool r = co_await resp.get_conn()->write_chunked(
+              std::string_view(content.data(), size));
+          if (!r) {
+            co_return;
+          }
+
+          if (in_file.eof()) {
+            co_await resp.get_conn()->end_chunked();
+            break;
+          }
+        }
       });
 
   server.set_http_handler<GET>(
