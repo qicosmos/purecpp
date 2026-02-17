@@ -11,7 +11,7 @@
   "smtp_password": "xxxxxxxxxx",
   "smtp_from_email": "xxxxx@qq.com",
   "smtp_from_name": "PureCpp管理员",
-  "web_server_url": "http://localhost:3389",
+  "web_server_url": "https://purecpp.cn",
   "default_avatar_url": "/images/avatar.png",
   "default_user_count": 0,
   "rate_limit_rules": [
